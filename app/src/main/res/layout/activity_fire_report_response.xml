@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="12dp">
+
+    <!-- Back Button -->
+    <ImageView
+        android:id="@+id/back"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/ic_backed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/fireStationName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fire Station Name"
+        android:textSize="20sp"
+        android:layout_marginTop="15dp"
+        android:textColor="#E00024"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Chat Scrollable Area -->
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="40dp"
+        android:fillViewport="true"
+        android:elevation="4dp"
+        app:layout_constraintTop_toBottomOf="@id/fireStationName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/chatInputArea">
+
+        <LinearLayout
+            android:id="@+id/scrollContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:gravity="start" />
+    </ScrollView>
+
+    <!-- Recording Bar (Messenger-style) -->
+    <LinearLayout
+        android:id="@+id/recordBar"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical"
+        android:background="#FFFFFF"
+        android:visibility="gone"
+        android:elevation="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/chatInputArea">
+
+        <!-- Red Dot -->
+        <View
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/red_dot_circle"
+            android:layout_marginEnd="12dp" />
+
+        <!-- Timer -->
+        <TextView
+            android:id="@+id/recordTimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textSize="16sp"
+            android:textColor="#222222"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Waveform Placeholder -->
+        <View
+            android:layout_width="0dp"
+            android:layout_height="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/wave_placeholder"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Pause (Before Delete) -->
+        <ImageView
+            android:id="@+id/recordPause"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:src="@drawable/ic_pause"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Cancel -->
+        <ImageView
+            android:id="@+id/recordCancel"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:src="@drawable/ic_trash" />
+
+        <!-- Send -->
+        <ImageView
+            android:id="@+id/recordSend"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:src="@drawable/icon_send"
+            android:layout_marginStart="16dp" />
+    </LinearLayout>
+
+    <!-- Chat Input Area -->
+    <LinearLayout
+        android:id="@+id/chatInputArea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:animateLayoutChanges="true"
+        android:padding="12dp"
+        android:background="#FFFFFF"
+        android:elevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Camera -->
+        <ImageView
+            android:id="@+id/cameraIcon"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:src="@drawable/ic_camera"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Gallery -->
+        <ImageView
+            android:id="@+id/galleryIcon"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:src="@drawable/ic_gallery"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Voice (Tap to Start Record Bar) -->
+        <ImageView
+            android:id="@+id/voiceRecordIcon"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:src="@drawable/ic_record"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Collapse Arrow (GONE by default; shown when expanded) -->
+        <ImageView
+            android:id="@+id/arrowBackIcon"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:src="@drawable/ic_message_back"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone" />
+
+        <EditText
+            android:id="@+id/messageInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:minHeight="35dp"
+            android:maxHeight="120dp"
+            android:maxLines="5"
+            android:layout_weight="1"
+            android:hint="Message"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:background="@drawable/input_field_bg"
+            android:textColor="@android:color/black"
+            android:textColorHint="@color/gray"
+            android:inputType="textMultiLine|textCapSentences"
+            android:scrollbars="vertical"
+            android:scrollHorizontally="false"
+            android:textSize="16sp"
+            android:gravity="center_vertical|start" />
+
+        <!-- Send Button -->
+        <ImageView
+            android:id="@+id/sendButton"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:src="@drawable/icon_send"
+            android:layout_marginStart="16dp" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

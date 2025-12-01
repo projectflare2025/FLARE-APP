@@ -1,0 +1,90 @@
+<resources>
+    <string name="app_name">FLARE</string>
+    <string name="underline_text"><u>Click Here SMS Report!</u></string>
+    <!-- res/values/strings.xml -->
+    <string name="google_maps_geocoding_key">AIzaSyDdJ1N_5HKH_JHndZvmM7jb4H4VLb2iq1Q</string>
+    <!-- optional
+    <string name="locationiq_key">YOUR_LOCATIONIQ_KEY</string>
+    -->
+    <string-array name="vehicle_types">
+        <item>Vehicular Accident</item>
+        <item>Patient Transport</item>
+    </string-array>
+
+
+    <!-- res/values/strings.xml -->
+    <string name="content_desc_profile_photo">Profile photo</string>
+    <string name="content_desc_edit_profile_icon">Edit profile</string>
+    <string name="content_desc_change_password_icon">Change password</string>
+    <string name="content_desc_my_report_icon">My report</string>
+    <string name="content_desc_logout_icon">Logout</string>
+    <string name="content_desc_navigate">Navigate</string>
+
+    <string name="content_desc_dark_mode_icon">Dark mode</string>
+    <string name="content_desc_about_icon">About</string>
+    <string name="content_desc_guide_icon">User guide</string>
+    <string name="content_desc_station_icon">Fire station info</string>
+
+    <string name="content_desc_navigate_up">Go back</string>
+    <string name="content_desc_change_photo">Change photo</string>
+
+    <string name="content_desc_icon_current_loc">Current location icon</string>
+    <string name="content_desc_icon_near_station">Near station icon</string>
+    <string name="content_desc_icon_far_station">Far station icon</string>
+
+    <string name="content_desc_icon_map_title">Map section icon</string>
+    <string name="content_desc_icon_fire_title">Fire section icon</string>
+    <string name="content_desc_icon_other_title">Other emergencies section icon</string>
+
+    <string name="content_desc_phone_icon">Phone number</string>
+
+    <string name="content_desc_sort">Sort reports</string>
+    <string name="content_desc_reports_list">List of reports</string>
+    <string name="content_desc_empty">Empty state</string>
+
+    <string name="content_desc_my_location">Center map on my location</string>
+
+    <string name="onb_title">Welcome to Flare</string>
+    <string name="onb_subtitle">Easily report fires and emergencies. Stay informed with real-time updates.</string>
+    <string name="onb_chip_nearby">Nearby stations</string>
+    <string name="onb_chip_realtime">Real-time alerts</string>
+    <string name="onb_chip_fast">Fast reporting</string>
+    <string name="onb_cta">Get started</string>
+    <string name="onb_skip">Skip</string>
+    <string name="content_desc_firefighter">Illustration of a firefighter</string>
+
+    <string name="content_desc_info">Info</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="station_contact">Station contact</string>
+    <string name="main_tagline">Report fires and emergencies quickly.</string>
+
+
+    <!-- Categories shown in the first dropdown -->
+    <string-array name="category_options">
+        <item>Fire Report</item>
+        <item>Emergency Medical Services</item>
+        <item>Other Emergency</item>
+    </string-array>
+
+    <!-- Details for each category (from your screenshot/database) -->
+    <string-array name="fire_report_options">
+        <item>House on Fire</item>
+        <item>Business Establishment</item>
+        <item>Vehicle on Fire</item>
+        <item>Grass/Forest/Garbage on Fire</item>
+        <item>Post on Fire</item>
+    </string-array>
+
+    <string-array name="ems_options">
+        <item>Vehicular Accident</item>
+        <item>Patient Transport</item>
+    </string-array>
+
+    <string-array name="other_emergency_options">
+        <item>Collapsed Structure</item>
+        <item>Flood</item>
+        <item>Hazardous Material (e.g. Gas Leak)</item>
+    </string-array>
+
+</resources>

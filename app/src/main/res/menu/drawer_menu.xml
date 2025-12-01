@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <group android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/nav_report_fire"
+            android:title="Report Fire"
+            android:icon="@drawable/ic_fire_24"
+            app:showAsAction="never"/>
+
+        <item
+            android:id="@+id/nav_report_other"
+            android:title="Report Other Emerency"
+            android:icon="@drawable/ic_warning_24"
+            app:showAsAction="never"/>
+
+        <item
+            android:id="@+id/nav_report_ems"
+            android:title="Report Emergency Medical"
+            android:icon="@drawable/ic_car_crash_24"
+            app:showAsAction="never"/>
+
+        <item
+            android:id="@+id/nav_my_reports"
+            android:title="My Reports"
+            android:icon="@drawable/ic_inbox_24"
+            app:showAsAction="never"/>
+
+        <item
+            android:id="@+id/nav_about"
+            android:title="About"
+            android:icon="@drawable/ic_info_24"
+            app:showAsAction="never"/>
+    </group>
+
+</menu>

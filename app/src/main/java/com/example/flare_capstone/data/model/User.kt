@@ -1,0 +1,9 @@
+package com.example.flare_capstone.data.model
+
+data class User(
+    var name: String? = null,
+    var email: String? = null,
+    var contact: String? = null,
+    var profile: String? = null,
+    var userDocId: String? = null
+)
