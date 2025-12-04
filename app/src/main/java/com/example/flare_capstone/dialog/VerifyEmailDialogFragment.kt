@@ -13,7 +13,7 @@ import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.example.flare_capstone.R
 import com.example.flare_capstone.databinding.ActivityVerifyEmailBinding
-import com.example.flare_capstone.views.auth.LoginActivity
+import com.example.flare_capstone.views.auth.LoginFragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FieldValue
@@ -191,7 +191,7 @@ class VerifyEmailDialogFragment : DialogFragment() {
         if (dialogClosed) return
 
         auth.signOut()
-        startActivity(Intent(requireContext(), LoginActivity::class.java))
+        startActivity(Intent(requireContext(), LoginFragment::class.java))
         dismissAllowingStateLoss()
     }
 

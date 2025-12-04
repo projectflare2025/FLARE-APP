@@ -24,7 +24,7 @@ import com.example.flare_capstone.R
 import com.example.flare_capstone.data.database.AppDatabase
 import com.example.flare_capstone.data.model.SmsReport
 import com.example.flare_capstone.databinding.ActivitySmsBinding
-import com.example.flare_capstone.views.auth.MainActivity
+import com.example.flare_capstone.views.auth.MainFragment
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -115,7 +115,7 @@ class ReportSmsActivity : AppCompatActivity() {
         registerReceiver(smsSentReceiver, IntentFilter(SMS_SENT_ACTION), RECEIVER_NOT_EXPORTED)
 
         binding.logo.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, MainFragment::class.java))
             finish()
         }
 

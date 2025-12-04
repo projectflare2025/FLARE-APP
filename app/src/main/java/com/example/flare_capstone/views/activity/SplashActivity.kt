@@ -7,10 +7,9 @@ import android.os.Handler
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.flare_capstone.R
-import com.example.flare_capstone.views.auth.LoginActivity
 import com.example.flare_capstone.views.activity.FirefighterActivity
-import com.example.flare_capstone.views.auth.MainActivity
 import com.example.flare_capstone.views.activity.UserActivity
+import com.example.flare_capstone.views.auth.LoginFragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.Timestamp
@@ -62,7 +61,7 @@ class SplashActivity : AppCompatActivity() {
             if (!user.isEmailVerified) {
                 Toast.makeText(this, "Please verify your email first.", Toast.LENGTH_SHORT).show()
                 auth.signOut()
-                startActivity(Intent(this, LoginActivity::class.java))
+                startActivity(Intent(this, LoginFragment::class.java))
                 finish()
                 return@addOnSuccessListener
             }
@@ -75,7 +74,7 @@ class SplashActivity : AppCompatActivity() {
 
                     if (!doc.exists()) {
                         auth.signOut()
-                        startActivity(Intent(this, LoginActivity::class.java))
+                        startActivity(Intent(this, LoginFragment::class.java))
                         finish()
                         return@addOnSuccessListener
                     }
@@ -86,7 +85,7 @@ class SplashActivity : AppCompatActivity() {
                     if (status != "verified") {
                         Toast.makeText(this, "Account pending verification.", Toast.LENGTH_SHORT).show()
                         auth.signOut()
-                        startActivity(Intent(this, LoginActivity::class.java))
+                        startActivity(Intent(this, LoginFragment::class.java))
                         finish()
                         return@addOnSuccessListener
                     }

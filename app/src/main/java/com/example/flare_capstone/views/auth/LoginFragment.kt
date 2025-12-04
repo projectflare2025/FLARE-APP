@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.flare_capstone.R
 import com.example.flare_capstone.databinding.FragmentLoginBinding
 import com.example.flare_capstone.dialog.VerifyEmailDialogFragment
@@ -45,9 +46,11 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         setupPasswordToggle(binding.password)
 
         binding.loginButton.setOnClickListener { onLoginClicked() }
+
         binding.registerButton.setOnClickListener {
-            // You can navigate to RegisterFragment or a new Activity here
+            findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
         }
+
         binding.forgotPassword.setOnClickListener { onForgotPassword() }
 
         return binding.root

@@ -37,7 +37,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.example.flare_capstone.data.model.EmergencyMedicalServicesActivity
 import com.example.flare_capstone.views.fragment.user.FireLevelActivity
-import com.example.flare_capstone.views.auth.MainActivity
 import com.example.flare_capstone.views.fragment.profile.MyReportActivity
 import com.example.flare_capstone.views.fragment.user.OtherEmergencyActivity
 import com.example.flare_capstone.R
@@ -45,6 +44,7 @@ import com.example.flare_capstone.adapter.NotificationAdapter
 import com.example.flare_capstone.adapter.UiNotification
 import com.example.flare_capstone.databinding.FragmentHomeBinding
 import com.example.flare_capstone.databinding.ViewNotificationsPanelBinding
+import com.example.flare_capstone.views.auth.MainFragment
 import com.example.flare_capstone.views.fragment.settings.AboutAppActivity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -449,7 +449,7 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
                 val prefs = requireActivity().getSharedPreferences("shown_notifications", Context.MODE_PRIVATE)
                 prefs.edit().clear().putInt("unread_message_count", 0).apply()
                 FirebaseAuth.getInstance().signOut()
-                startActivity(Intent(requireActivity(), MainActivity::class.java))
+                startActivity(Intent(requireActivity(), MainFragment::class.java))
                 postToast("You have been logged out.")
                 requireActivity().finish()
             }

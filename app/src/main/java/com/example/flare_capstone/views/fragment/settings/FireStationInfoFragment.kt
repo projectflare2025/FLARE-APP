@@ -14,7 +14,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.example.flare_capstone.R
 import com.example.flare_capstone.databinding.FragmentFireStationInformationBinding
-import com.example.flare_capstone.views.auth.MainActivity
+import com.example.flare_capstone.views.auth.MainFragment
 
 class FireStationInfoFragment : Fragment(R.layout.fragment_fire_station_information) {
 
@@ -58,7 +58,7 @@ class FireStationInfoFragment : Fragment(R.layout.fragment_fire_station_informat
 
         binding.back.setOnClickListener {
             if (fromReport) {
-                val intent = Intent(requireContext(), MainActivity::class.java)
+                val intent = Intent(requireContext(), MainFragment::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 startActivity(intent)
             } else {

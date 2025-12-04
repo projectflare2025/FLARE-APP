@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.flare_capstone.databinding.FragmentRegisterBinding
 import com.example.flare_capstone.dialog.VerifyEmailDialogFragment
 import com.google.firebase.FirebaseApp
@@ -47,7 +48,7 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
         setupPasswordToggle(binding.confirmPassword)
 
         binding.loginButton.setOnClickListener {
-            // Navigate to Login Fragment or Activity
+            findNavController().navigate(R.id.action_registerFragment_to_loginFragment)
         }
 
         binding.logo.setOnClickListener {

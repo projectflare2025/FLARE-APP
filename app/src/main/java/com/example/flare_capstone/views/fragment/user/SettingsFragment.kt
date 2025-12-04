@@ -14,11 +14,11 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.flare_capstone.views.fragment.settings.FireStationInfoActivity
-import com.example.flare_capstone.views.auth.MainActivity
 import com.example.flare_capstone.R
 import com.example.flare_capstone.util.ThemeManager
 import com.example.flare_capstone.views.fragment.settings.UserGuideActivity
 import com.example.flare_capstone.databinding.FragmentSettingsBinding
+import com.example.flare_capstone.views.auth.MainFragment
 import com.example.flare_capstone.views.fragment.settings.AboutAppActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -131,7 +131,7 @@ class SettingsFragment : Fragment() {
                     setUserActiveStatus(false)
 
                     FirebaseAuth.getInstance().signOut()
-                    startActivity(Intent(requireActivity(), MainActivity::class.java))
+                    startActivity(Intent(requireActivity(), MainFragment::class.java))
                     Toast.makeText(requireActivity(), "You have been logged out.", Toast.LENGTH_SHORT).show()
                     requireActivity().finish()
                 }
