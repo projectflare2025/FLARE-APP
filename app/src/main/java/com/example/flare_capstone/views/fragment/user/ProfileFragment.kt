@@ -13,11 +13,11 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.flare_capstone.views.fragment.profile.EditProfileActivity
-import com.example.flare_capstone.views.auth.MainActivity
 import com.example.flare_capstone.views.fragment.profile.MyReportActivity
 import com.example.flare_capstone.R
 import com.example.flare_capstone.databinding.FragmentProfileBinding
-import com.example.flare_capstone.views.auth.ChangePasswordActivity
+import com.example.flare_capstone.views.auth.ChangePasswordFragment
+import com.example.flare_capstone.views.auth.MainFragment
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -47,7 +47,7 @@ class ProfileFragment : Fragment() {
         }
 
         binding.changePassword.setOnClickListener {
-            startActivity(Intent(requireActivity(), ChangePasswordActivity::class.java))
+            startActivity(Intent(requireActivity(), ChangePasswordFragment::class.java))
         }
 
         binding.myReport.setOnClickListener {
@@ -104,7 +104,7 @@ class ProfileFragment : Fragment() {
             .setView(dialogView)
             .setPositiveButton("Yes") { _, _ ->
                 FirebaseAuth.getInstance().signOut()
-                startActivity(Intent(requireActivity(), MainActivity::class.java))
+                startActivity(Intent(requireActivity(), MainFragment::class.java))
                 Toast.makeText(requireActivity(), "You have been logged out.", Toast.LENGTH_SHORT).show()
                 requireActivity().finish()
             }

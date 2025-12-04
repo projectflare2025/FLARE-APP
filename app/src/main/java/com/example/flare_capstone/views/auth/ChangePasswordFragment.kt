@@ -4,21 +4,24 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Bundle
+import android.text.method.PasswordTransformationMethod
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import com.example.flare_capstone.R
-import com.example.flare_capstone.util.ThemeManager
-import com.example.flare_capstone.databinding.ActivityChangePasswordBinding
+import com.example.flare_capstone.databinding.FragmentChangePasswordBinding
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 
-class ChangePasswordActivity : AppCompatActivity() {
+class ChangePasswordFragment : Fragment(R.layout.fragment_change_password) {
 
     /* ---------------- View / Auth ---------------- */
-    private lateinit var binding: ActivityChangePasswordBinding
+    private lateinit var binding: FragmentChangePasswordBinding
     private lateinit var auth: FirebaseAuth
 
     /* ---------------- Connectivity ---------------- */
@@ -27,25 +30,24 @@ class ChangePasswordActivity : AppCompatActivity() {
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
         override fun onAvailable(network: Network) {
-            runOnUiThread { hideLoadingDialog() }
+            activity?.runOnUiThread { hideLoadingDialog() }
         }
         override fun onLost(network: Network) {
-            runOnUiThread { showLoadingDialog("No internet connection") }
+            activity?.runOnUiThread { showLoadingDialog("No internet connection") }
         }
     }
 
     /* =========================================================
      * Lifecycle
      * ========================================================= */
-    override fun onCreate(savedInstanceState: Bundle?) {
-        ThemeManager.applyTheme(this) // ensure theme first
-        super.onCreate(savedInstanceState)
-
-        binding = ActivityChangePasswordBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        binding = FragmentChangePasswordBinding.inflate(inflater, container, false)
 
         auth = FirebaseAuth.getInstance()
-        connectivityManager = getSystemService(ConnectivityManager::class.java)
+        connectivityManager = activity?.getSystemService(ConnectivityManager::class.java)!!
 
         // Initial network state
         if (!isConnected()) showLoadingDialog("No internet connection")
@@ -54,10 +56,12 @@ class ChangePasswordActivity : AppCompatActivity() {
         connectivityManager.registerDefaultNetworkCallback(networkCallback)
 
         // Back button
-        binding.back.setOnClickListener { onBackPressed() }
+        binding.back.setOnClickListener { requireActivity().onBackPressed() }
 
         // Save action
         binding.saveButton.setOnClickListener { onChangePasswordClicked() }
+
+        return binding.root
     }
 
     override fun onDestroy() {
@@ -153,7 +157,7 @@ class ChangePasswordActivity : AppCompatActivity() {
     }
 
     private fun showToast(msg: String) {
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
     }
 
     /* =========================================================
@@ -171,7 +175,7 @@ class ChangePasswordActivity : AppCompatActivity() {
     private fun showLoadingDialog(message: String = "Please wait…") {
         if (loadingDialog == null) {
             val view = layoutInflater.inflate(R.layout.custom_loading_dialog, null)
-            loadingDialog = AlertDialog.Builder(this)
+            loadingDialog = AlertDialog.Builder(requireContext())
                 .setView(view)
                 .setCancelable(false)
                 .create()

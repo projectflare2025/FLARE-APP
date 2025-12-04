@@ -11,7 +11,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.flare_capstone.R
 import com.example.flare_capstone.databinding.ActivityFireStationInformationBinding
-import com.example.flare_capstone.views.auth.MainActivity
+import com.example.flare_capstone.views.auth.MainFragment
 
 class FireStationInfoActivity: AppCompatActivity() {
 
@@ -57,7 +57,7 @@ class FireStationInfoActivity: AppCompatActivity() {
 
         binding.back.setOnClickListener {
             if (fromReport) {
-                val intent = Intent(this, MainActivity::class.java)
+                val intent = Intent(this, MainFragment::class.java)
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
                 startActivity(intent)
             } else {
