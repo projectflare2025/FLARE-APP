@@ -37,7 +37,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.example.flare_capstone.data.model.EmergencyMedicalServicesActivity
 import com.example.flare_capstone.views.fragment.user.FireLevelActivity
-import com.example.flare_capstone.views.auth.MainActivity
 import com.example.flare_capstone.views.fragment.profile.MyReportActivity
 import com.example.flare_capstone.views.fragment.user.OtherEmergencyActivity
 import com.example.flare_capstone.R
@@ -436,26 +435,32 @@ class HomeFragment : Fragment(), OnMapReadyCallback {
         startUserHeaderListener()
     }
 
-    /* =========================================================
-     * Logout
-     * ========================================================= */
-    private fun logout() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_logout, null)
-        dialogView.findViewById<ImageView>(R.id.logoImageView).setImageResource(R.drawable.ic_logo)
+//    /* =========================================================
+//     * Logout
+//     * ========================================================= */
+//    private fun logout() {
+//        val dialogView = layoutInflater.inflate(R.layout.dialog_logout, null)
+//        dialogView.findViewById<ImageView>(R.id.logoImageView).setImageResource(R.drawable.ic_logo)
+//
+//        AlertDialog.Builder(requireActivity())
+//            .setView(dialogView)
+//            .setPositiveButton("Yes") { _, _ ->
+//                // Clear shared prefs if needed
+//                val prefs = requireActivity().getSharedPreferences("shown_notifications", Context.MODE_PRIVATE)
+//                prefs.edit().clear().putInt("unread_message_count", 0).apply()
+//
+//                // Sign out Firebase
+//                FirebaseAuth.getInstance().signOut()
+//
+//                // Navigate back to MainFragment
+//                findNavController().navigate(R.id.action_loginFragment_to_mainFragment)
+//
+//                postToast("You have been logged out.")
+//            }
+//            .setNegativeButton("No") { d, _ -> d.dismiss() }
+//            .show()
+//    }
 
-        AlertDialog.Builder(requireActivity())
-            .setView(dialogView)
-            .setPositiveButton("Yes") { _, _ ->
-                val prefs = requireActivity().getSharedPreferences("shown_notifications", Context.MODE_PRIVATE)
-                prefs.edit().clear().putInt("unread_message_count", 0).apply()
-                FirebaseAuth.getInstance().signOut()
-                startActivity(Intent(requireActivity(), MainActivity::class.java))
-                postToast("You have been logged out.")
-                requireActivity().finish()
-            }
-            .setNegativeButton("No") { d, _ -> d.dismiss() }
-            .show()
-    }
 
     /* =========================================================
      * Map setup
