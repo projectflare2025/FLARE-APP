@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- WHITE CARD -->
+    <LinearLayout
+        android:id="@+id/finalCard"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_onboard_white"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:gravity="center"
+        android:clipToOutline="true"
+        android:elevation="12dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- CHECKMARK / COMPLETION ICON -->
+        <ImageView
+            android:id="@+id/successIcon"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_onboard4"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="Success" />
+
+        <!-- TITLE -->
+        <TextView
+            android:id="@+id/finalTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="You're All Set!"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="@color/primaryColor"
+            android:gravity="center"
+            android:layout_marginBottom="10dp"/>
+
+        <!-- SUBTITLE -->
+        <TextView
+            android:id="@+id/finalSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="You're now ready to use FLARE for rapid emergency reporting."
+            android:textSize="15sp"
+            android:textColor="#444"
+            android:gravity="center"
+            android:lineSpacingExtra="6dp"
+            android:layout_marginBottom="20dp" />
+
+        <!-- FEATURE BULLET LIST -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="28dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• Report emergencies instantly"
+                android:textSize="14sp"
+                android:textColor="#333"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• Works offline with SMS fallback"
+                android:textSize="14sp"
+                android:textColor="#333"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• Track and manage your reports"
+                android:textSize="14sp"
+                android:textColor="#333"/>
+        </LinearLayout>
+
+        <!-- GET STARTED BUTTON -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/getStartedBtn"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Get Started"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/primaryColor"
+            app:cornerRadius="20dp"
+            android:layout_marginTop="12dp" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

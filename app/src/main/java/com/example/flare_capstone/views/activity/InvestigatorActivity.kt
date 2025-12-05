@@ -30,7 +30,7 @@ class InvestigatorActivity : AppCompatActivity() {
         // Bottom nav items matching your fragments & nav graph destinations
         val menuItems = arrayOf(
             CbnMenuItem(R.drawable.ic_home, R.drawable.avd_home , R.id.inHomeFragment),
-            CbnMenuItem(R.drawable.ic_services, R.drawable.ic_services, R.id.reportFlow),
+            CbnMenuItem(R.drawable.ic_services, R.drawable.avd_services, R.id.reportFlow),
             CbnMenuItem(R.drawable.ic_dashboard, R.drawable.avd_dashboard, R.id.inInboxFragment),
             CbnMenuItem(R.drawable.ic_profile, R.drawable.avd_profile, R.id.inPorfileFragment)
         )

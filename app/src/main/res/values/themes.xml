@@ -1,9 +1,21 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
     <style name="Base.Theme.FLARECAPSTONE" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+        <!-- FLARE Branding -->
+        <item name="colorPrimary">@color/primaryColor</item>
+        <item name="colorSecondary">@color/secondaryColor</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorOnSecondary">@android:color/white</item>
+
+        <!-- Edge-to-Edge -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+        <!-- Override default text color in TextInputLayout -->
+        <item name="textInputStyle">@style/Widget.Material3.TextInputLayout.FilledBox</item>
+
     </style>
 
-    <style name="Theme.FLARECAPSTONE" parent="Base.Theme.FLARECAPSTONE" />
+    <style name="Theme.FLARECAPSTONE" parent="Base.Theme.FLARECAPSTONE"/>
 </resources>

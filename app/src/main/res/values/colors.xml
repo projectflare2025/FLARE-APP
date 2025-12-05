@@ -1,35 +1,26 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="gray">#B0B0B0</color>
-    <color name="redFire">#E63946</color>
-    <color name="blue">#3A59D1</color>
-    <!-- Color for unread items -->
-    <color name="unread_background">#3A59D1</color> <!-- Red color for unread -->
 
-    <!-- Color for read items with opacity change -->
-    <color name="read_background">#6A8BCC</color> <!-- Green color for read -->
+    <!-- Brand Colors -->
+    <color name="primaryColor">#D50000</color>        <!-- Stronger red (your request) -->
+    <color name="secondaryColor">#FF7A00</color>
 
-    <color name="background_color">#FFFFFF</color>
-    <color name="text_color">#000000</color>
-
-    <color name="teal_200">#03DAC5</color>
+    <!-- Essential Theme Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="gray">#C4C4C4</color>
+    <color name="textGray">#8C9092</color>
     <color name="transparent">#00000000</color>
 
+    <!-- Extra Colors Used Across Old Layouts -->
+    <color name="md_theme_red">#FF1744</color>          <!-- Material red -->
+    <color name="redFire">#FF0033</color>               <!-- Fire red used in badges -->
+    <color name="green_500">#4CAF50</color>             <!-- Success green -->
+    <color name="blue">#2962FF</color>                  <!-- Notification blue -->
+    <color name="background_sms">#FFF3E0</color>        <!-- SMS backgrounds -->
 
-    <color name="background_sms">#E87F2E</color>
+    <!-- Default UI Utility Colors -->
+    <color name="warningYellow">#FFC107</color>
+    <color name="successGreen">#4CAF50</color>
+    <color name="errorRed">#D32F2F</color>
 
-    <!-- Severity palette -->
-    <color name="md_theme_red">#D32F2F</color>      <!-- Fire -->
-    <color name="md_theme_blue">#1E88E5</color>     <!-- EMS -->
-    <color name="md_theme_orange">#FB8C00</color>   <!-- Other -->
-
-    <!-- Material Green 500 -->
-    <color name="green_500">#4CAF50</color>
-    <color name="yellow_400">#FFFF00</color>
-
-    <color name="primaryColor">#FF6200EE</color> <!-- Change to your preferred color -->
-    <color name="primaryDarkColor">#FF3700B3</color>
-    <color name="primaryLightColor">#FFBB86FC</color>
 </resources>

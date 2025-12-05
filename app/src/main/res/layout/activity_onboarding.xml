@@ -1,51 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/onboardingLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".views.activity.OnboardingActivity">
+    android:background="@drawable/bg_main_modern"
+    android:padding="24dp">
 
-    <RelativeLayout
+    <!-- ========================= -->
+    <!--       VIEWPAGER AREA      -->
+    <!-- ========================= -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/dots_indicator"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="32dp"/>
+
+    <!-- ========================= -->
+    <!--        DOTS INDICATOR     -->
+    <!-- ========================= -->
+    <com.tbuonomo.viewpagerdotsindicator.DotsIndicator
+        android:id="@+id/dots_indicator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/nextButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="20dp"
+
+        app:dotsColor="#50FFFFFF"
+    app:selectedDotColor="@color/secondaryColor"
+    app:dotsSize="12dp"
+    app:dotsSpacing="8dp"
+    app:dotsCornerRadius="6dp"
+    app:progressMode="true"
+    />
+
+    <!-- ========================= -->
+    <!--        NEXT BUTTON        -->
+    <!-- ========================= -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/nextButton"
+        style="@style/Widget.Material3.Button"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/viewPager"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@+id/nextButton" />
-
-        <!-- DotsIndicator to show the progress of onboarding screens -->
-        <com.tbuonomo.viewpagerdotsindicator.DotsIndicator
-            android:id="@+id/dots_indicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_gravity="center"
-            android:layout_marginBottom="90dp"
-            app:dotsColor="@color/gray"
-            app:dotsCornerRadius="8dp"
-            app:dotsSize="16dp"
-            app:dotsSpacing="4dp"
-            app:dotsWidthFactor="2.5"
-            app:progressMode="true"
-            app:selectedDotColor="@color/black" />
-
-        <!-- Next Button to navigate to the next onboarding screen -->
-        <Button
-            android:id="@+id/nextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="16dp"
-            android:backgroundTint="@color/black"
-            android:text="Next"
-            android:textColor="#FFFFFF" />
-
-    </RelativeLayout>
+        android:layout_height="56dp"
+        android:text="Next"
+        android:textAllCaps="false"
+        android:textSize="16sp"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@color/secondaryColor"
+        app:cornerRadius="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

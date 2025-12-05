@@ -88,7 +88,7 @@ class NotificationAdapter(
         b.tvLocation.text = item.locationText
         b.unreadDot.visibility = if (item.unread) View.VISIBLE else View.GONE
         (b.root as? MaterialCardView)?.strokeColor =
-            if (item.unread) ContextCompat.getColor(context, R.color.yellow_400) // yellow border
+            if (item.unread) ContextCompat.getColor(context, R.color.warningYellow) // yellow border
             else ContextCompat.getColor(context, R.color.transparent)             // no border
 
 
