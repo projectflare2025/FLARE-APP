@@ -121,9 +121,10 @@ class FirefighterActivity : AppCompatActivity() {
 
         // Bottom nav items matching your fragments & nav graph destinations
         val menuItems = arrayOf(
-            CbnMenuItem(R.drawable.ic_home, R.drawable.avd_home , R.id.homeFragment),
-            CbnMenuItem(R.drawable.ic_dashboard, R.drawable.avd_dashboard, R.id.inboxFragment),
-            CbnMenuItem(R.drawable.ic_profile, R.drawable.avd_profile, R.id.profileFragment)
+            CbnMenuItem(R.drawable.ic_home, R.drawable.avd_home , R.id.homeFireFighterFragment),
+            CbnMenuItem(R.drawable.ic_services, R.drawable.avd_services, R.id.fireFighterReportFragment),
+            CbnMenuItem(R.drawable.ic_dashboard, R.drawable.avd_dashboard, R.id.inboxFireFighterFragment),
+            CbnMenuItem(R.drawable.ic_profile, R.drawable.avd_profile, R.id.profileFireFighterFragment)
         )
 
         // Setup menu for the bottom navigation
