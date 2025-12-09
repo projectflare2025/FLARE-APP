@@ -20,7 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.flare_capstone.R
-import com.example.flare_capstone.util.ThemeManager
+import com.example.flare_capstone.utils.ThemeManager
 import com.example.flare_capstone.databinding.ActivityEditProfileBinding
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase

@@ -26,9 +26,9 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.flare_capstone.util.FetchBarangayAddressTask
+import com.example.flare_capstone.utils.FetchBarangayAddressTask
 import com.example.flare_capstone.R
-import com.example.flare_capstone.util.ThemeManager
+import com.example.flare_capstone.utils.ThemeManager
 import com.example.flare_capstone.databinding.ActivityEmergencyMedicalServicesBinding
 import com.example.flare_capstone.views.activity.UserActivity
 import com.example.flare_capstone.views.fragment.user.EmergencyMedicalServicesReport

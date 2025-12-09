@@ -7,7 +7,7 @@ import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.example.flare_capstone.R
-import com.example.flare_capstone.util.MemoryManagement
+import com.example.flare_capstone.utils.MemoryManagement
 import com.example.flare_capstone.views.onboarding.FirstOnboardingFragment
 import com.example.flare_capstone.views.onboarding.OnboardingPagerAdapter
 import com.example.flare_capstone.views.onboarding.SecondOnboardingFragment

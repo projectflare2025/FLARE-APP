@@ -1,4 +1,4 @@
-package com.example.flare_capstone.util
+package com.example.flare_capstone.utils
 
 import android.location.Geocoder
 import android.os.AsyncTask

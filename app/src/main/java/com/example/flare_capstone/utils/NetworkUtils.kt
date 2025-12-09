@@ -1,7 +1,6 @@
-package com.example.flare_capstone.util
+package com.example.flare_capstone.utils
 
 import android.app.AlertDialog
-import android.app.Dialog
 import android.content.Context
 import android.net.*
 import android.os.Build

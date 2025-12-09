@@ -1,7 +1,6 @@
 package com.example.flare_capstone.views.fragment.user
 
 import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -31,8 +30,8 @@ import com.example.flare_capstone.R
 import com.example.flare_capstone.data.model.OtherEmergency
 import com.example.flare_capstone.data.model.User
 import com.example.flare_capstone.databinding.ActivityOtherEmergencyBinding
-import com.example.flare_capstone.util.FetchBarangayAddressTask
-import com.example.flare_capstone.util.ThemeManager
+import com.example.flare_capstone.utils.FetchBarangayAddressTask
+import com.example.flare_capstone.utils.ThemeManager
 import com.example.flare_capstone.views.activity.UserActivity
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback

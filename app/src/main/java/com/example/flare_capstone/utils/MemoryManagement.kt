@@ -1,4 +1,4 @@
-package com.example.flare_capstone.util
+package com.example.flare_capstone.utils
 
 /**
  * Interface for memory management

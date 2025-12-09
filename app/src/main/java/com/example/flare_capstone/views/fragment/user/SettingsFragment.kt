@@ -15,7 +15,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.flare_capstone.views.fragment.settings.FireStationInfoActivity
 import com.example.flare_capstone.R
-import com.example.flare_capstone.util.ThemeManager
+import com.example.flare_capstone.utils.ThemeManager
 import com.example.flare_capstone.views.fragment.settings.UserGuideActivity
 import com.example.flare_capstone.databinding.FragmentSettingsBinding
 import com.example.flare_capstone.views.auth.MainFragment

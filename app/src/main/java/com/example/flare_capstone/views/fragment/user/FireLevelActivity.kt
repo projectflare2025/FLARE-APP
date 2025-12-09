@@ -13,8 +13,6 @@
         import android.net.Uri
         import android.os.Bundle
         import android.os.CountDownTimer
-        import android.text.Editable
-        import android.text.TextWatcher
         import android.util.Base64
         import android.view.View
         import android.widget.ArrayAdapter
@@ -30,9 +28,9 @@
         import androidx.camera.lifecycle.ProcessCameraProvider
         import androidx.core.app.ActivityCompat
         import androidx.core.content.ContextCompat
-        import com.example.flare_capstone.util.FetchBarangayAddressTask
+        import com.example.flare_capstone.utils.FetchBarangayAddressTask
         import com.example.flare_capstone.R
-        import com.example.flare_capstone.util.ThemeManager
+        import com.example.flare_capstone.utils.ThemeManager
         import com.example.flare_capstone.data.model.FireReport
         import com.example.flare_capstone.data.model.User
         import com.example.flare_capstone.databinding.ActivityFireLevelBinding
@@ -57,8 +55,6 @@
         import java.io.ByteArrayOutputStream
         import java.io.File
         import java.io.FileInputStream
-        import java.net.HttpURLConnection
-        import java.net.URL
         import java.text.SimpleDateFormat
         import java.util.Date
         import java.util.Locale

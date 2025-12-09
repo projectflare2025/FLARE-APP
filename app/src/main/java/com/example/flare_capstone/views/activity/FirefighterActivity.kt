@@ -21,10 +21,10 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
-import com.example.flare_capstone.views.fragment.bfp.FireFighterResponseActivity
 import com.example.flare_capstone.R
 import com.example.flare_capstone.databinding.ActivityDashboardFireFighterBinding
+import np.com.susanthapa.curved_bottom_navigation.CbnMenuItem
+import com.example.flare_capstone.views.fragment.bfp.FireFighterResponseActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
@@ -55,7 +55,6 @@ class FirefighterActivity : AppCompatActivity() {
         const val CH_MSG  = "ff_admin_msg"   // 👈 new: admin chat messages
     }
 
-
     private lateinit var binding: ActivityDashboardFireFighterBinding
     private lateinit var database: FirebaseDatabase
     private lateinit var prefs: SharedPreferences
@@ -71,9 +70,7 @@ class FirefighterActivity : AppCompatActivity() {
     private val liveListeners = mutableListOf<Pair<Query, ChildEventListener>>()
     private val liveValueListeners = mutableListOf<Pair<DatabaseReference, ValueEventListener>>()
 
-
     private var unreadAdminCount = 0
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,9 +78,7 @@ class FirefighterActivity : AppCompatActivity() {
         binding = ActivityDashboardFireFighterBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment_firefighter) as NavHostFragment
-        binding.bottomNavigationFirefighter.setupWithNavController(navHostFragment.navController)
+        setupBottomNavigation()  // New bottom navigation setup
 
         database = FirebaseDatabase.getInstance()
         prefs = getSharedPreferences("ff_notifs", MODE_PRIVATE)
@@ -118,6 +113,26 @@ class FirefighterActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupBottomNavigation() {
+        // Get the nav controller
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment_firefighter) as NavHostFragment
+        val navController = navHostFragment.navController
+
+        // Bottom nav items matching your fragments & nav graph destinations
+        val menuItems = arrayOf(
+            CbnMenuItem(R.drawable.ic_home, R.drawable.avd_home , R.id.homeFragment),
+            CbnMenuItem(R.drawable.ic_dashboard, R.drawable.avd_dashboard, R.id.inboxFragment),
+            CbnMenuItem(R.drawable.ic_profile, R.drawable.avd_profile, R.id.profileFragment)
+        )
+
+        // Setup menu for the bottom navigation
+        binding.bottomNavigationFirefighter.setMenuItems(menuItems, 0)
+
+        // Connect bottom nav to navController
+        binding.bottomNavigationFirefighter.setupWithNavController(navController)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -138,7 +153,7 @@ class FirefighterActivity : AppCompatActivity() {
                     if (sender.equals("admin", ignoreCase = true) && !isRead) cnt++
                 }
                 unreadAdminCount = cnt
-                updateInboxBadge(cnt)
+//                updateInboxBadge(cnt)
             }
 
             override fun onCancelled(error: DatabaseError) {}
@@ -260,21 +275,21 @@ class FirefighterActivity : AppCompatActivity() {
     }
 
 
-    private fun updateInboxBadge(count: Int) {
-        // Suppose your bottom nav ID is R.id.inbox or similar
-        val menu = binding.bottomNavigationFirefighter.menu
-        val inboxItem = menu.findItem(R.id.inboxFragmentFireFighter) // adjust your ID
-        if (inboxItem != null) {
-            if (count > 0) {
-                // show badge
-                val badge = binding.bottomNavigationFirefighter.getOrCreateBadge(R.id.inboxFragmentFireFighter)
-                badge.isVisible = true
-                badge.number = count
-            } else {
-                binding.bottomNavigationFirefighter.removeBadge(R.id.inboxFragmentFireFighter)
-            }
-        }
-    }
+//    private fun updateInboxBadge(count: Int) {
+//        // Suppose your bottom nav ID is R.id.inbox or similar
+//        val menu = binding.bottomNavigationFirefighter.menu
+//        val inboxItem = menu.findItem(R.id.inboxFragmentFireFighter) // adjust your ID
+//        if (inboxItem != null) {
+//            if (count > 0) {
+//                // show badge
+//                val badge = binding.bottomNavigationFirefighter.getOrCreateBadge(R.id.inboxFragmentFireFighter)
+//                badge.isVisible = true
+//                badge.number = count
+//            } else {
+//                binding.bottomNavigationFirefighter.removeBadge(R.id.inboxFragmentFireFighter)
+//            }
+//        }
+//    }
 
     // Call this when user opens the station's chat
     fun markStationAdminRead(stationId: String) {

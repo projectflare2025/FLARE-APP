@@ -2,7 +2,7 @@ package com.example.flare_capstone.views.activity
 
 import androidx.navigation.ui.setupWithNavController
 import com.example.flare_capstone.data.model.User
-import com.example.flare_capstone.util.ThemeManager
+import com.example.flare_capstone.utils.ThemeManager
 import com.example.flare_capstone.views.fragment.user.FireReportResponseActivity
 
 class UserActivity : androidx.appcompat.app.AppCompatActivity() {
