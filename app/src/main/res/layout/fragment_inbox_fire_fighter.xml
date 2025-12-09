@@ -4,79 +4,137 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="12dp">
+    android:background="@color/white"
+    android:padding="16dp">
 
+    <!-- Title -->
     <TextView
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:text="INBOX"
-        android:textSize="25sp"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="#E00024"
+        android:textColor="@color/primaryColor"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- App logo (slightly smaller, closer to title for a tighter header) -->
 
 
-    <!-- App logo -->
-    <ImageView
-        android:id="@+id/logo"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:src="@drawable/ic_logo"
-        android:contentDescription="@string/app_name"
+    <!-- Search bar (same style as Members screen) -->
+    <EditText
+        android:id="@+id/searchMessageInput"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/rounded_input_background"
+        android:drawableStart="@drawable/ic_search"
+        android:drawablePadding="8dp"
+        android:hint="Search messages"
+        android:padding="12dp"
+        android:textColorHint="@color/gray"
+        android:inputType="text"
         app:layout_constraintTop_toBottomOf="@id/titleText"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="36dp" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Tabs like segmented filters (ALL / Unread) -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="12dp"
         app:tabIndicatorFullWidth="false"
         app:tabIndicatorGravity="bottom"
-        app:tabIndicatorColor="#E00024"
-        app:tabSelectedTextColor="#000000"
-        app:tabTextColor="#9AA0A6"
-        app:layout_constraintTop_toBottomOf="@id/logo"
+        app:tabIndicatorColor="@color/primaryColor"
+        app:tabSelectedTextColor="@color/primaryText"
+        app:tabTextColor="@color/secondaryText"
+        app:layout_constraintTop_toBottomOf="@id/searchMessageInput"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ALL"/>
+            android:text="All" />
+
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="UnRead"/>
+            android:text="Unread" />
     </com.google.android.material.tabs.TabLayout>
 
+    <!-- Section label (like "List of Members" style) -->
+    <TextView
+        android:id="@+id/messagesLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Messages"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/primaryColor"
+        app:layout_constraintTop_toBottomOf="@id/tabLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- RecyclerView for message list -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:clipToPadding="false"
+        android:paddingBottom="88dp"
+        app:layout_constraintTop_toBottomOf="@id/messagesLabel"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Empty state (styled like Members empty) -->
     <TextView
         android:id="@+id/noMessagesText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="No messages available"
-        android:textSize="16sp"
-        android:textColor="#888888"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/gray"
+        android:gravity="center"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/tabLayout"
+        app:layout_constraintTop_toBottomOf="@id/messagesLabel"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:clipToPadding="false"
-        android:paddingBottom="12dp"
-        app:layout_constraintTop_toBottomOf="@id/tabLayout"
+    <!-- Centered loading overlay (matching Members layout style) -->
+    <LinearLayout
+        android:id="@+id/loadingLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ProgressBar
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:indeterminateTint="@color/primaryColor" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Loading..."
+            android:textColor="@color/primaryText"
+            android:textSize="16sp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

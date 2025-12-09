@@ -46,9 +46,7 @@ class ProfileFireFighterFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         // placeholders while loading
-        binding.fullyName.text = "Loading..."
         binding.fullName.text = auth.currentUser?.email ?: "Unknown"
-        binding.contact.text = "—"
         binding.profileIcon.setImageResource(R.drawable.ic_default_profile)
 
         val email = auth.currentUser?.email?.trim()?.lowercase()
@@ -70,14 +68,9 @@ class ProfileFireFighterFragment : Fragment() {
             startActivity(intent)
         }
 
-        // Edit Profile → launch firefighter editor with the matched path
-        binding.editReport.setOnClickListener {
-            val intent = Intent(requireActivity(), FireFighterReportActivity::class.java)
-            startActivity(intent)
-        }
 
         // Logout
-        binding.logout.setOnClickListener {
+        binding.logoutButton.setOnClickListener {
             val dialogView = layoutInflater.inflate(R.layout.dialog_logout, null)
             dialogView.findViewById<ImageView>(R.id.logoImageView)?.setImageResource(R.drawable.ic_logo)
 
@@ -129,7 +122,6 @@ class ProfileFireFighterFragment : Fragment() {
                     Toast.makeText(requireContext(), "Warning: profile email differs from signed-in email.", Toast.LENGTH_SHORT).show()
                 }
 
-                binding.fullyName.text = name
                 binding.fullName.text = stationEmail ?: emailLc
                 binding.contact.text = contact
 
@@ -161,7 +153,6 @@ class ProfileFireFighterFragment : Fragment() {
     }
 
     private fun bindUnknown(emailLc: String, reason: String) {
-        binding.fullyName.text = "Unknown Firefighter"
         binding.fullName.text = emailLc
         binding.contact.text = "—"
         binding.profileIcon.setImageResource(R.drawable.ic_default_profile)

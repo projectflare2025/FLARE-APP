@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.flare_capstone.R
 import com.example.flare_capstone.adapter.FireFighterReportAdapter
 import com.example.flare_capstone.data.model.Report
 import com.example.flare_capstone.data.model.ReportKind
@@ -21,7 +22,6 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import com.example.flare_capstone.R
 
 class FireFighterReportFragment : Fragment(R.layout.fragment_fire_fighter_report) {
 
@@ -31,6 +31,7 @@ class FireFighterReportFragment : Fragment(R.layout.fragment_fire_fighter_report
 
     private var allReports: MutableList<Report> = mutableListOf()
     private var currentTab: ReportKind = ReportKind.ALL
+    private var currentStatus: String = "Any"
 
     private val attachedRefs = mutableListOf<Pair<DatabaseReference, ValueEventListener>>()
 
@@ -44,18 +45,16 @@ class FireFighterReportFragment : Fragment(R.layout.fragment_fire_fighter_report
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for the fragment
         binding = FragmentFireFighterReportBinding.inflate(inflater, container, false)
 
         binding.list.layoutManager = LinearLayoutManager(requireContext())
         binding.list.adapter = adapter
 
-        // Toolbar
-        binding.topBar.setNavigationOnClickListener { requireActivity().onBackPressedDispatcher.onBackPressed() }
-
-        // Tabs
+        // Tabs (kind: All / Fire / Other / EMS / SMS)
         val tl = binding.tabType
-        listOf("All", "Fire", "Other", "EMS", "SMS").forEach { tl.addTab(tl.newTab().setText(it)) }
+        listOf("All", "Fire", "Other", "EMS", "SMS").forEach {
+            tl.addTab(tl.newTab().setText(it))
+        }
         tl.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 currentTab = when (tab.position) {
@@ -71,12 +70,13 @@ class FireFighterReportFragment : Fragment(R.layout.fragment_fire_fighter_report
             override fun onTabReselected(tab: TabLayout.Tab) {}
         })
 
-        // Status dropdown
-        binding.dropStatus.setSimpleItems(arrayOf("Any", "Pending", "Ongoing", "Completed", "Received"))
-        binding.dropStatus.setOnItemClickListener { _, _, _, _ -> applyFilters() }
+        // Status filter buttons (Any, Pending, Ongoing, Completed)
+        setupStatusButtons()
 
         // Search
-        binding.inputSearch.addTextChangedListener { applyFilters() }
+        binding.inputSearch.addTextChangedListener {
+            applyFilters()
+        }
 
         // Pull-to-refresh
         binding.swipe.setOnRefreshListener {
@@ -87,6 +87,35 @@ class FireFighterReportFragment : Fragment(R.layout.fragment_fire_fighter_report
         attachRealtimeListeners(resolveStationKey())
 
         return binding.root
+    }
+
+    private fun setupStatusButtons() {
+        val buttons = listOf(
+            binding.statusAnyButton to "Any",
+            binding.statusPendingButton to "Pending",
+            binding.statusOngoingButton to "Ongoing",
+            binding.statusCompletedButton to "Completed"
+        )
+
+        fun updateSelection(selected: String) {
+            currentStatus = selected
+            buttons.forEach { (btn, value) ->
+                val isSelected = value == selected
+                btn.isSelected = isSelected
+                // Optional visual feedback if your FilterButton style supports it
+                btn.alpha = if (isSelected) 1f else 0.6f
+            }
+            applyFilters()
+        }
+
+        buttons.forEach { (btn, value) ->
+            btn.setOnClickListener {
+                updateSelection(value)
+            }
+        }
+
+        // Default selection: Any
+        updateSelection("Any")
     }
 
     override fun onDestroyView() {
@@ -140,7 +169,9 @@ class FireFighterReportFragment : Fragment(R.layout.fragment_fire_fighter_report
 
     private fun detachAll() {
         attachedRefs.forEach { (ref, l) ->
-            try { ref.removeEventListener(l) } catch (_: Exception) {}
+            try {
+                ref.removeEventListener(l)
+            } catch (_: Exception) { }
         }
         attachedRefs.clear()
     }
@@ -197,16 +228,29 @@ class FireFighterReportFragment : Fragment(R.layout.fragment_fire_fighter_report
 
     private fun applyFilters() {
         val q = binding.inputSearch.text?.toString()?.trim()?.lowercase().orEmpty()
-        val statusSel = binding.dropStatus.text?.toString().orEmpty()
+        val statusSel = currentStatus
+
         val filtered = allReports.asSequence()
-            .filter { r -> currentTab == ReportKind.ALL || r.kind == currentTab }
-            .filter { r -> statusSel.isBlank() || statusSel == "Any" || r.status.equals(statusSel, ignoreCase = true) }
-            .filter { r -> q.isBlank() || r.location.lowercase().contains(q) }
+            .filter { r ->
+                currentTab == ReportKind.ALL || r.kind == currentTab
+            }
+            .filter { r ->
+                // Same logic as dropdown: "Any" = no filter
+                statusSel == "Any" || r.status.equals(statusSel, ignoreCase = true)
+            }
+            .filter { r ->
+                q.isBlank() || r.location.lowercase().contains(q)
+            }
             .toList()
+
         adapter.submitList(filtered)
     }
 
     private fun openDetails(r: Report) {
-        Toast.makeText(requireContext(), "${r.kind}: ${r.location}\n${r.status} • ${r.date} ${r.time}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            requireContext(),
+            "${r.kind}: ${r.location}\n${r.status} • ${r.date} ${r.time}",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }

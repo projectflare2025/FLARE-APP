@@ -10,6 +10,8 @@
     <color name="gray">#C4C4C4</color>
     <color name="textGray">#8C9092</color>
     <color name="transparent">#00000000</color>
+    <color name="primaryText">#000000</color>
+    <color name="secondaryText">#8C9092</color>
 
     <!-- Extra Colors Used Across Old Layouts -->
     <color name="md_theme_red">#FF1744</color>          <!-- Material red -->
@@ -17,6 +19,7 @@
     <color name="green_500">#4CAF50</color>             <!-- Success green -->
     <color name="blue">#2962FF</color>                  <!-- Notification blue -->
     <color name="background_sms">#FFF3E0</color>        <!-- SMS backgrounds -->
+    <color name="dividerColor">#1F000000</color> <!-- subtle dark line -->
 
     <!-- Default UI Utility Colors -->
     <color name="warningYellow">#FFC107</color>
