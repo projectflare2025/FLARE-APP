@@ -1,6 +1,7 @@
 package com.example.flare_capstone.views.fragment.bfp
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -91,11 +92,17 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
     private var pendingSelect: Pair<Source, String>? = null
 
     // Firebase base
-    private var stationAccountKey: String? = null
-    private var reportsBase: String? = null
+    private var stationAccountKey: String? = null                // only for liveLocation (old tree)
+    private var reportsBase: String = "AllReport"                // incidents always under /AllReport
 
-    // child listeners
+    // child listeners for AllReport
     private val liveListeners = mutableListOf<Pair<Query, ChildEventListener>>()
+
+    // unitReports listeners
+    private val unitDispatchListeners = mutableListOf<Pair<Query, ValueEventListener>>()
+
+    // current unit id (must match unitReports.unitId)
+    private var myUnitId: String = ""
 
     // All incidents in memory
     private data class Incident(
@@ -107,6 +114,14 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
         val timestamp: Long
     )
     private val incidents = mutableMapOf<String, Incident>() // key -> incident
+
+    // report IDs assigned to this unit per source
+    private val assignedIdsBySource: MutableMap<Source, MutableSet<String>> = mutableMapOf(
+        Source.FIRE  to mutableSetOf(),
+        Source.OTHER to mutableSetOf(),
+        Source.EMS   to mutableSetOf(),
+        Source.SMS   to mutableSetOf()
+    )
 
     // Route polylines
     private data class OsrmRoute(val points: List<LatLng>, val durationSec: Long, val distanceMeters: Long)
@@ -157,6 +172,11 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
         auth = FirebaseAuth.getInstance()
         fusedLocation = LocationServices.getFusedLocationProviderClient(requireContext())
 
+        // 🔹 Read unitId from session (SharedPreferences) – must match unitReports.unitId
+        val prefs = requireContext().getSharedPreferences("flare_session", Context.MODE_PRIVATE)
+        myUnitId = prefs.getString("unitId", null)
+            ?: auth.currentUser?.uid.orEmpty()
+
         // Attach a SupportMapFragment into mapContainer
         val existing = childFragmentManager.findFragmentById(binding.mapContainer.id) as? SupportMapFragment
         val mapFragment = existing ?: SupportMapFragment.newInstance().also {
@@ -165,19 +185,19 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
         }
         mapFragment.getMapAsync(this)
 
-        // Station account from email -> account key
+        // Optional: station account just for liveLocation (old tree)
         stationAccountKey = stationAccountForEmail(auth.currentUser?.email?.lowercase())
         if (stationAccountKey == null) {
-            Log.w(TAG, "Unknown firefighter email; abort")
-            return
+            Log.w(TAG, "Unknown firefighter email; liveLocation will not be stored")
         }
 
-        // Base path for all 4 report types
-        reportsBase = "TagumCityCentralFireStation/FireFighter/AllFireFighterAccount/$stationAccountKey/AllReport"
+        // Base for incidents
+        reportsBase = "AllReport"
 
         binding.completed.setOnClickListener { markCompleted() }
 
-        attachReportListeners()
+        attachReportListeners()           // AllReport/*
+        attachUnitDispatchListeners()     // unitReports/*
         ensureLocationPermission()
 
         // Tap the status bar to open the current incident details
@@ -200,8 +220,8 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
         val e = email ?: return null
         return when (e) {
             "tcwestfiresubstation@gmail.com" -> "MabiniFireFighterAccount"
-            "lafilipinafire@gmail.com" -> "LaFilipinaFireFighterAccount"
-            "bfp_tagumcity@yahoo.com" -> "CanocotanFireFighterAccount"
+            "lafilipinafire@gmail.com"       -> "LaFilipinaFireFighterAccount"
+            "bfp_tagumcity@yahoo.com"        -> "CanocotanFireFighterAccount"
             else -> null
         }
     }
@@ -220,6 +240,7 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
     // ---------- Lifecycle cleanup ----------
     override fun onDestroyView() {
         detachReportListeners()
+        detachUnitDispatchListeners()
         stopLocationUpdates()
         _binding = null
         super.onDestroyView()
@@ -366,21 +387,20 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
             val lng = last.longitude
 
             updatePins(LatLng(lat, lng), currentReportPoint)
-            updateLiveLocation(lat, lng)  // 🔥 <-- new line
+            updateLiveLocation(lat, lng)
         }
     }
-
 
     private fun startLocationUpdates() {
         if (!hasLocationPermission()) return
 
         val req = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
-            1_000L                 // desired interval ~1s
+            1_000L
         )
-            .setMinUpdateIntervalMillis(1_000L) // don't go slower than 1s
-            .setMaxUpdateDelayMillis(0L)        // deliver ASAP, no batching
-            .setMinUpdateDistanceMeters(1f)     // optional: only if moved ≥1 m
+            .setMinUpdateIntervalMillis(1_000L)
+            .setMaxUpdateDelayMillis(0L)
+            .setMinUpdateDistanceMeters(1f)
             .build()
 
         try {
@@ -390,14 +410,13 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
         }
     }
 
-
     private fun stopLocationUpdates() {
         try { fusedLocation.removeLocationUpdates(locCallback) } catch (_: Exception) {}
     }
 
-    // ---------- Firebase listeners for 4 types ----------
+    // ---------- Firebase listeners for 4 types (AllReport) ----------
     private fun attachReportListeners() {
-        val base = reportsBase ?: return
+        val base = reportsBase    // "AllReport"
         listenLive("$base/FireReport", Source.FIRE)
         listenLive("$base/OtherEmergencyReport", Source.OTHER)
         listenLive("$base/EmergencyMedicalServicesReport", Source.EMS)
@@ -422,6 +441,81 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
         liveListeners += q to l
     }
 
+    // ---------- unitReports listeners (per-unit assignment) ----------
+    private fun attachUnitDispatchListeners() {
+        if (myUnitId.isBlank()) return
+
+        fun hook(typeNode: String, src: Source) {
+            val base = FirebaseDatabase.getInstance()
+                .getReference("unitReports")
+                .child(typeNode)
+
+            val q: Query = base.orderByChild("unitId").equalTo(myUnitId)
+            val l = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val set = assignedIdsBySource[src] ?: mutableSetOf<String>().also {
+                        assignedIdsBySource[src] = it
+                    }
+                    set.clear()
+
+                    for (c in snapshot.children) {
+                        val rid = c.child("reportId").getValue(String::class.java)
+                        if (!rid.isNullOrBlank()) set += rid
+                    }
+
+                    // Remove incidents on the map that are no longer assigned
+                    pruneIncidentsByAssignments()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.w(TAG, "unitReports[$typeNode] cancelled: ${error.message}")
+                }
+            }
+
+            q.addValueEventListener(l)
+            unitDispatchListeners += q to l
+        }
+
+        hook("FireReport", Source.FIRE)
+        hook("OtherEmergencyReport", Source.OTHER)
+        hook("EmergencyMedicalServicesReport", Source.EMS)
+        hook("SmsReport", Source.SMS)
+    }
+
+    private fun detachUnitDispatchListeners() {
+        unitDispatchListeners.forEach { (q, l) ->
+            try { q.removeEventListener(l) } catch (_: Exception) {}
+        }
+        unitDispatchListeners.clear()
+    }
+
+    // Remove incidents in memory/map not assigned to this unit anymore
+    private fun pruneIncidentsByAssignments() {
+        val it = incidents.entries.iterator()
+        while (it.hasNext()) {
+            val (key, inc) = it.next()
+            val set = assignedIdsBySource[inc.source]
+            if (set != null && set.isNotEmpty() && !set.contains(inc.id)) {
+                it.remove()
+                incidentMarkers.remove(key)?.remove()
+
+                if (selectedIncidentKey == key) {
+                    selectedIncidentKey = null
+                    currentReportPoint = null
+                    clearAllRoutes()
+                }
+            }
+        }
+
+        if (incidents.isEmpty()) {
+            numberMap.clear()
+            nextNumber = 1
+            updateSelectedInfo()
+        } else {
+            ensureSelection()
+        }
+    }
+
     private fun isOngoing(status: String?): Boolean =
         status?.trim()?.replace("-", "")?.equals("ongoing", ignoreCase = true) == true
 
@@ -431,6 +525,13 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
 
         val status = c.child("status").getValue(String::class.java)
         if (!isOngoing(status)) {
+            removeChild(id, src)
+            return
+        }
+
+        // only show if this unit has a unitReports entry for this reportId
+        val assignedSet = assignedIdsBySource[src]
+        if (assignedSet != null && assignedSet.isNotEmpty() && !assignedSet.contains(id)) {
             removeChild(id, src)
             return
         }
@@ -593,68 +694,22 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
             Source.SMS   -> "SmsReport"
         }
 
-        // central & current station bases
-        val baseCentral = "TagumCityCentralFireStation/AllReport"
-        val myBaseFF = reportsBase ?: return // e.g. .../AllFireFighterAccount/<thisStation>/AllReport
-
-        // all known station account keys (use your real list)
-        val allStations = listOf(
-            "CanocotanFireFighterAccount",
-            "LaFilipinaFireFighterAccount",
-            "MabiniFireFighterAccount"
+        // Only update the central AllReport tree
+        val updates = hashMapOf<String, Any>(
+            "AllReport/$typeNode/${inc.id}/status" to "Completed",
+            "AllReport/$typeNode/${inc.id}/completedAt" to ServerValue.TIMESTAMP
         )
 
-        // firefighter-accounts root
-        val ffRoot = "TagumCityCentralFireStation/FireFighter/AllFireFighterAccount"
-
-        // First read the AllFireFighterAccount tree once so we only update nodes that exist
-        db.child(ffRoot).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snap: DataSnapshot) {
-                val updates = hashMapOf<String, Any>()
-
-                // 1) Central canonical record
-                updates["$baseCentral/$typeNode/${inc.id}/status"] = "Completed"
-                // Optional timestamps:
-                // updates["$baseCentral/$typeNode/${inc.id}/completedAt"] = ServerValue.TIMESTAMP
-
-                // 2) Current station copy (safe even if also covered below)
-                updates["$myBaseFF/$typeNode/${inc.id}/status"] = "Completed"
-                // updates["$myBaseFF/$typeNode/${inc.id}/completedAt"] = ServerValue.TIMESTAMP
-
-                // 3) Every *other* station that has this incident → flip to Completed too
-                for (station in allStations) {
-                    val path = "$station/AllReport/$typeNode/${inc.id}"
-                    if (snap.child(path).exists()) {
-                        updates["$ffRoot/$path/status"] = "Completed"
-                        // updates["$ffRoot/$path/completedAt"] = ServerValue.TIMESTAMP
-                    }
-                }
-
-                if (updates.isEmpty()) {
-                    Toast.makeText(requireContext(), "Nothing to update", Toast.LENGTH_SHORT).show()
-                    return
-                }
-
-                db.updateChildren(updates)
-                    .addOnSuccessListener {
-                        Toast.makeText(requireContext(), "Marked as Completed (all copies)", Toast.LENGTH_SHORT).show()
-                        Log.d(TAG, "Completed id=${inc.id} src=${inc.source} (central + all stations)")
-                        // Your child listeners will prune the marker if the item disappears or status filters change
-                    }
-                    .addOnFailureListener { e ->
-                        Toast.makeText(requireContext(), "Failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                        Log.w(TAG, "Complete failed: ${e.message}")
-                    }
+        db.updateChildren(updates)
+            .addOnSuccessListener {
+                Toast.makeText(requireContext(), "Marked as Completed", Toast.LENGTH_SHORT).show()
+                Log.d(TAG, "Completed id=${inc.id} src=${inc.source} at /AllReport")
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(requireContext(), "Read failed: ${error.message}", Toast.LENGTH_SHORT).show()
-                Log.w(TAG, "Snapshot read failed: ${error.message}")
+            .addOnFailureListener { e ->
+                Toast.makeText(requireContext(), "Failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                Log.w(TAG, "Complete failed: ${e.message}")
             }
-        })
     }
-
-
 
     // ---------- OSRM routing ----------
     private fun shouldRecomputeRoutes(origin: LatLng, dest: LatLng): Boolean {
@@ -846,10 +901,7 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun showIncidentDetails(inc: Incident) {
-        val base = reportsBase ?: run {
-            Toast.makeText(requireContext(), "Missing DB base", Toast.LENGTH_SHORT).show()
-            return
-        }
+        val base = reportsBase   // "AllReport"
         val typeNode = when (inc.source) {
             Source.FIRE  -> "FireReport"
             Source.OTHER -> "OtherEmergencyReport"
@@ -917,9 +969,8 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun updateLiveLocation(lat: Double, lng: Double) {
-        val key = stationAccountKey ?: return
-        val path =
-            "TagumCityCentralFireStation/FireFighter/AllFireFighterAccount/$key/liveLocation"
+        val key = stationAccountKey ?: return   // if you removed this tree too, change the path below
+        val path = "TagumCityCentralFireStation/FireFighter/AllFireFighterAccount/$key/liveLocation"
 
         val ref = FirebaseDatabase.getInstance().getReference(path)
         val data = mapOf(
@@ -936,6 +987,4 @@ class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
                 Log.w(TAG, "Failed to update live location: ${e.message}")
             }
     }
-
-
 }

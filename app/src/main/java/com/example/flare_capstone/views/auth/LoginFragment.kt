@@ -1,5 +1,6 @@
 package com.example.flare_capstone.views.auth
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -185,7 +186,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     private fun routeToDashboard() {
         val user = auth.currentUser
         if (user == null) {
-            // Fallback – if somehow no user, send to normal user dashboard
             startActivity(Intent(requireContext(), UserActivity::class.java))
             requireActivity().finish()
             return
@@ -194,7 +194,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         val email = user.email?.trim()?.lowercase()
 
         if (email.isNullOrEmpty()) {
-            // If no email (should not normally happen), just treat as normal user
             startActivity(Intent(requireContext(), UserActivity::class.java))
             requireActivity().finish()
             return
@@ -211,7 +210,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                     val role = responderDoc.getString("role") ?: ""
 
                     if (role.equals("Investigator", ignoreCase = true)) {
-                        // Investigator responder
                         startActivity(Intent(requireContext(), InvestigatorActivity::class.java))
                         requireActivity().finish()
                         return@addOnSuccessListener
@@ -225,7 +223,21 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                     .get()
                     .addOnSuccessListener { unitsSnap ->
                         if (!unitsSnap.isEmpty) {
-                            // Email exists in units –> Firefighter / unit dashboard
+                            // 🔹 We found a UNIT document for this email
+                            val unitDoc = unitsSnap.documents[0]
+                            val unitId = unitDoc.id   // <-- this is what you use in unitReports.unitId
+
+                            // Save unitId to "session" (SharedPreferences)
+                            val prefs = requireContext()
+                                .getSharedPreferences("flare_session", Context.MODE_PRIVATE)
+                            prefs.edit()
+                                .putString("unitId", unitId)
+                                .apply()
+
+                            // Optionally log
+                            // Log.d("LoginFragment", "Saved unitId=$unitId to flare_session")
+
+                            // Go to Firefighter dashboard
                             startActivity(Intent(requireContext(), FirefighterActivity::class.java))
                         } else {
                             // 3️⃣ Default –> regular user dashboard
@@ -234,13 +246,11 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                         requireActivity().finish()
                     }
                     .addOnFailureListener {
-                        // If units query fails, still allow normal user login
                         startActivity(Intent(requireContext(), UserActivity::class.java))
                         requireActivity().finish()
                     }
             }
             .addOnFailureListener {
-                // If responders query itself fails, still allow normal user login
                 startActivity(Intent(requireContext(), UserActivity::class.java))
                 requireActivity().finish()
             }

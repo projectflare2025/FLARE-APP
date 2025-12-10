@@ -734,6 +734,7 @@
                             adminNotif = false,
                             fireStationName = "",
                             isRead = false,
+                            investigated = false,
                             fireStationId = "",
                             isMyLocation = isMyLocation,
                             userDocId = userId          // 👈 Firestore document ID// 👈 store the boolean

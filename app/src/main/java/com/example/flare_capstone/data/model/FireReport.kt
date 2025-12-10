@@ -17,6 +17,7 @@ data class FireReport(
     var fireStationName: String = "Canocotan Fire Station",
     val adminNotif:Boolean = false,
     val isRead: Boolean = false,
+    val investigated: Boolean = false,
     val category: String = "",
     var fireStationId: String,
     val isMyLocation:Boolean = false,
