@@ -37,58 +37,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/titleText" />
 
-    <!-- Date Filter Section -->
-    <LinearLayout
-        android:id="@+id/dateFilterLayout"
-        android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/input_background"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/searchReportInput">
-
-        <!-- Previous Button -->
-        <ImageButton
-            android:id="@+id/prevDateButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:background="?android:attr/selectableItemBackground"
-            android:contentDescription="Previous Date"
-            android:padding="8dp"
-            android:src="@drawable/ic_arrow_left"
-            app:tint="@color/primaryColor" />
-
-        <!-- Selected Date -->
-        <TextView
-            android:id="@+id/selectedDateText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Dec 12, 2024"
-            android:textColor="@color/primaryColor"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <!-- Next Button -->
-        <ImageButton
-            android:id="@+id/nextDateButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:background="?android:attr/selectableItemBackground"
-            android:contentDescription="Next Date"
-            android:padding="8dp"
-            android:src="@drawable/ic_arrow_right"
-            app:tint="@color/primaryColor" />
-    </LinearLayout>
-
     <!-- Filter Buttons (Pending / Complete) -->
     <LinearLayout
         android:id="@+id/reportFilterButtons"
@@ -100,7 +48,7 @@
         android:paddingHorizontal="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/dateFilterLayout">
+        app:layout_constraintTop_toBottomOf="@id/searchReportInput">
 
         <Button
             android:id="@+id/pendingFilterButton"
