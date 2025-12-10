@@ -1,5 +1,6 @@
 package com.example.flare_capstone.views.fragment.bfp
 
+import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -15,14 +16,17 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 class FireFighterReportActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityFireFighterReportBinding
-    private val db by lazy { FirebaseDatabase.getInstance().reference }
+
+    private val db: DatabaseReference by lazy { FirebaseDatabase.getInstance().reference }
     private val adapter = FireFighterReportAdapter { report -> openDetails(report) }
 
     private var allReports: MutableList<Report> = mutableListOf()
@@ -31,11 +35,18 @@ class FireFighterReportActivity : AppCompatActivity() {
     // Keep database refs so we can remove listeners later
     private val attachedRefs = mutableListOf<Pair<DatabaseReference, ValueEventListener>>()
 
-    // Email → station key
-    private val emailToStation = mapOf(
-        "tcwestfiresubstation@gmail.com" to "MabiniFireFighterAccount",
-        "lafilipinafire@gmail.com"       to "LaFilipinaFireFighterAccount",
-        "bfp_tagumcity@yahoo.com"        to "CanocotanFireFighterAccount"
+    // unitReports listeners (Query + listener)
+    private val attachedUnitRefs = mutableListOf<Pair<Query, ValueEventListener>>()
+
+    // current unit id (must match unitReports.unitId)
+    private var myUnitId: String = ""
+
+    // report IDs per kind that belong to this unit
+    private val unitReportIds: MutableMap<ReportKind, MutableSet<String>> = mutableMapOf(
+        ReportKind.FIRE to mutableSetOf(),
+        ReportKind.OTHER to mutableSetOf(),
+        ReportKind.EMS to mutableSetOf(),
+        ReportKind.SMS to mutableSetOf()
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,6 +56,11 @@ class FireFighterReportActivity : AppCompatActivity() {
 
         binding.list.layoutManager = LinearLayoutManager(this)
         binding.list.adapter = adapter
+
+        // 🔹 Read unitId from "session" (this is the same id stored in unitReports.unitId)
+        val prefs = getSharedPreferences("flare_session", Context.MODE_PRIVATE)
+        myUnitId = prefs.getString("unitId", null)
+            ?: FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
 
         // Toolbar
         binding.topBar.setNavigationOnClickListener { finish() }
@@ -76,33 +92,31 @@ class FireFighterReportActivity : AppCompatActivity() {
 
         // Pull-to-refresh
         binding.swipe.setOnRefreshListener {
-            attachRealtimeListeners(resolveStationKey(), forceReattach = true)
+            attachRealtimeListeners(forceReattach = true)
+            attachUnitRealtimeListeners(forceReattach = true)
         }
 
         // Start
-        attachRealtimeListeners(resolveStationKey())
+        attachRealtimeListeners()
+        attachUnitRealtimeListeners()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         detachAll()
+        detachUnitAll()
     }
 
-    private fun resolveStationKey(): String {
-        val email = FirebaseAuth.getInstance().currentUser?.email?.lowercase().orEmpty()
-        return emailToStation[email] ?: "CanocotanFireFighterAccount" // safe fallback
-    }
-
-    /** Attach live listeners for each collection under the station */
-    private fun attachRealtimeListeners(stationKey: String, forceReattach: Boolean = false) {
+    /** Attach live listeners for each collection under the global AllReport node */
+    private fun attachRealtimeListeners(forceReattach: Boolean = false) {
         if (forceReattach) detachAll()
 
         allReports.clear()
         adapter.submitList(emptyList())
         binding.swipe.isRefreshing = true
 
-        // Base: TagumCityCentralFireStation/FireFighter/AllFireFighterAccount/{station}/AllReport
-        val base = "TagumCityCentralFireStation/FireFighter/AllFireFighterAccount/$stationKey/AllReport"
+        // Base: AllReport
+        val base = "AllReport"
 
         fun hook(path: String, kind: ReportKind) {
             val ref = db.child(path)
@@ -114,7 +128,7 @@ class FireFighterReportActivity : AppCompatActivity() {
                         val id = c.key ?: continue
                         @Suppress("UNCHECKED_CAST")
                         val m = (c.value as? Map<String, Any?>) ?: emptyMap()
-                        allReports += mapToReport(id, kind, m)     // ✅ operator
+                        allReports += mapToReport(id, kind, m)
                     }
                     // newest first
                     allReports.sortByDescending { it.timestamp }
@@ -141,6 +155,55 @@ class FireFighterReportActivity : AppCompatActivity() {
             try { ref.removeEventListener(l) } catch (_: Exception) {}
         }
         attachedRefs.clear()
+    }
+
+    // listen to unitReports/* for this unit
+    private fun attachUnitRealtimeListeners(forceReattach: Boolean = false) {
+        if (forceReattach) detachUnitAll()
+        if (myUnitId.isBlank()) return   // no unit id, nothing to filter
+
+        fun hook(typeNode: String, kind: ReportKind) {
+            val base = FirebaseDatabase.getInstance()
+                .getReference("unitReports")
+                .child(typeNode)
+
+            val q: Query = base.orderByChild("unitId").equalTo(myUnitId)
+            val l = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val set = unitReportIds[kind] ?: mutableSetOf<String>().also {
+                        unitReportIds[kind] = it
+                    }
+                    set.clear()
+
+                    for (c in snapshot.children) {
+                        val rid = c.child("reportId").getValue(String::class.java)
+                        if (!rid.isNullOrBlank()) set += rid
+                    }
+
+                    // We now know which report IDs belong to this unit
+                    applyFilters()
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(this@FireFighterReportActivity, error.message, Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            q.addValueEventListener(l)
+            attachedUnitRefs += q to l
+        }
+
+        hook("FireReport", ReportKind.FIRE)
+        hook("OtherEmergencyReport", ReportKind.OTHER)
+        hook("EmergencyMedicalServicesReport", ReportKind.EMS)
+        hook("SmsReport", ReportKind.SMS)
+    }
+
+    private fun detachUnitAll() {
+        attachedUnitRefs.forEach { (q, l) ->
+            try { q.removeEventListener(l) } catch (_: Exception) {}
+        }
+        attachedUnitRefs.clear()
     }
 
     private fun mapToReport(id: String, kind: ReportKind, raw: Map<String, Any?>): Report {
@@ -172,12 +235,15 @@ class FireFighterReportActivity : AppCompatActivity() {
             val p1 = parts[0].padStart(2, '0')
             val p2 = parts[1].padStart(2, '0')
             val y  = if (parts[2].length == 2) "20${parts[2]}" else parts[2]
+
+            val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+
             // Try DMY then MDY
             return runCatching {
-                LocalDateTime.parse("$y-$p2$t24:00")
+                LocalDateTime.parse("$y-$p2-$p1 $t24:00", fmt)
             }.map { it.atZone(ZoneOffset.UTC).toInstant().toEpochMilli() }.getOrElse {
                 runCatching {
-                    LocalDateTime.parse("$y-$p1$t24:00")
+                    LocalDateTime.parse("$y-$p1-$p2 $t24:00", fmt)
                 }.map { it.atZone(ZoneOffset.UTC).toInstant().toEpochMilli() }.getOrDefault(0L)
             }
         }
@@ -195,20 +261,38 @@ class FireFighterReportActivity : AppCompatActivity() {
         return "${h.toString().padStart(2, '0')}:$mm"
     }
 
-    /** Filters: tab (type), status dropdown, and search text */
+    /** Filters: tab (type), status dropdown, search text, and unitReports assignment */
     private fun applyFilters() {
         val q = binding.inputSearch.text?.toString()?.trim()?.lowercase().orEmpty()
         val statusSel = binding.dropStatus.text?.toString().orEmpty() // Any | Pending | Ongoing | ...
+
         val filtered = allReports.asSequence()
-            .filter { r -> currentTab == ReportKind.ALL || r.kind == currentTab }
-            .filter { r -> statusSel.isBlank() || statusSel == "Any" || r.status.equals(statusSel, ignoreCase = true) }
-            .filter { r -> q.isBlank() || r.location.lowercase().contains(q) }
+            .filter { r ->
+                currentTab == ReportKind.ALL || r.kind == currentTab
+            }
+            .filter { r ->
+                statusSel.isBlank() || statusSel == "Any" ||
+                        r.status.equals(statusSel, ignoreCase = true)
+            }
+            .filter { r ->
+                q.isBlank() || r.location.lowercase().contains(q)
+            }
+            // keep only reports that exist in unitReports for this unit (per kind)
+            .filter { r ->
+                val set = unitReportIds[r.kind]
+                set == null || set.isEmpty() || set.contains(r.id)
+            }
             .toList()
+
         adapter.submitList(filtered)
     }
 
     private fun openDetails(r: Report) {
-        // TODO: Launch a details screen/bottom sheet.
-        Toast.makeText(this, "${r.kind}: ${r.location}\n${r.status} • ${r.date} ${r.time}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            this,
+            "${r.kind}: ${r.location}\n${r.status} • ${r.date} ${r.time}",
+            Toast.LENGTH_SHORT
+        ).show()
+        // TODO: open detail screen if needed
     }
 }
