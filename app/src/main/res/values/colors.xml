@@ -13,6 +13,10 @@
     <color name="primaryText">#000000</color>
     <color name="secondaryText">#8C9092</color>
 
+    <color name="hintTextColor">#8C9092</color>
+
+    <color name="primaryTextColor">#000000</color>
+
     <!-- Extra Colors Used Across Old Layouts -->
     <color name="md_theme_red">#FF1744</color>          <!-- Material red -->
     <color name="redFire">#FF0033</color>               <!-- Fire red used in badges -->
@@ -25,5 +29,5 @@
     <color name="warningYellow">#FFC107</color>
     <color name="successGreen">#4CAF50</color>
     <color name="errorRed">#D32F2F</color>
-
+    primaryTextColor
 </resources>

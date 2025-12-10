@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/backgroundColor"
     android:padding="16dp">
 
     <!-- Back Button -->
@@ -39,7 +39,7 @@
         android:id="@+id/stepIndicatorText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Step 2: Investigation Evidence"
+        android:text="Step 5: Location / Property Information"
         android:textSize="16sp"
         android:textColor="@color/primaryTextColor"
         android:gravity="center"
@@ -53,7 +53,7 @@
         android:id="@+id/descriptionText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Upload photos and files related to your investigation, such as scene photos, documents, or sketches."
+        android:text="Provide the details of the property involved in the incident, including establishment information and land area."
         android:textSize="14sp"
         android:textColor="@color/hintTextColor"
         android:gravity="center"
@@ -78,7 +78,7 @@
             android:id="@+id/progressIndicator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Step 2 of 5"
+            android:text="Step 5 of 5"
             android:textSize="14sp"
             android:textColor="@color/primaryTextColor"
             android:layout_marginEnd="8dp" />
@@ -88,7 +88,7 @@
             android:layout_height="8dp"
             android:layout_weight="1"
             android:indeterminate="false"
-            android:progress="40"
+            android:progress="100"
             android:max="100"
             android:progressTint="@color/primaryColor"
             style="?android:attr/progressBarStyleHorizontal" />
@@ -99,7 +99,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/progressContainer"
-        app:layout_constraintBottom_toTopOf="@id/btnNextReport3"
+        app:layout_constraintBottom_toTopOf="@id/btnCompleteReport"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -113,99 +113,133 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="INVESTIGATION EVIDENCE"
+                android:text="LOCATION / PROPERTY INFORMATION"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/primaryColor"
                 android:layout_marginBottom="12dp" />
 
-            <!-- Image Upload -->
+            <!-- Name of Establishment -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Investigation Photo"
+                android:text="Name of Establishment"
                 android:textSize="14sp"
                 android:textColor="@color/primaryTextColor"
                 android:layout_marginBottom="4dp" />
 
             <LinearLayout
-                android:id="@+id/imageUploadContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:background="@drawable/rounded_input_background"
                 android:padding="12dp"
                 android:layout_marginBottom="16dp">
 
-                <!-- Preview of selected image -->
-                <ImageView
-                    android:id="@+id/investigationImagePreview"
-                    android:layout_width="match_parent"
-                    android:layout_height="180dp"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/ic_image_placeholder"
-                    android:contentDescription="Investigation image preview" />
-
-                <!-- Button to select image -->
-                <Button
-                    android:id="@+id/btnSelectInvestigationImage"
+                <EditText
+                    android:id="@+id/establishmentNameInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Upload Investigation Image"
-                    android:textStyle="bold"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/rounded_button_outline"
-                    android:textColor="@color/primaryColor" />
+                    android:hint="Enter name of establishment"
+                    android:textColorHint="@color/hintTextColor"
+                    android:textColor="@color/primaryTextColor"
+                    android:inputType="textCapWords"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp" />
             </LinearLayout>
 
-            <!-- File Upload -->
+            <!-- Owner -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Investigation File (Optional)"
+                android:text="Owner"
                 android:textSize="14sp"
                 android:textColor="@color/primaryTextColor"
                 android:layout_marginBottom="4dp" />
 
             <LinearLayout
-                android:id="@+id/fileUploadContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:background="@drawable/rounded_input_background"
                 android:padding="12dp"
                 android:layout_marginBottom="16dp">
 
-                <!-- File name / status -->
-                <TextView
-                    android:id="@+id/uploadedFileNameText"
+                <EditText
+                    android:id="@+id/ownerInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="No file selected"
-                    android:textSize="14sp"
-                    android:textColor="@color/hintTextColor" />
+                    android:hint="Enter name of owner"
+                    android:textColorHint="@color/hintTextColor"
+                    android:textColor="@color/primaryTextColor"
+                    android:inputType="textPersonName"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp" />
+            </LinearLayout>
 
-                <!-- Button to select file -->
-                <Button
-                    android:id="@+id/btnSelectInvestigationFile"
+            <!-- Occupant -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Occupant"
+                android:textSize="14sp"
+                android:textColor="@color/primaryTextColor"
+                android:layout_marginBottom="4dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_input_background"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp">
+
+                <EditText
+                    android:id="@+id/occupantInput"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Upload Investigation File"
-                    android:textStyle="bold"
-                    android:layout_marginTop="12dp"
-                    android:background="@drawable/rounded_button_outline"
-                    android:textColor="@color/primaryColor" />
+                    android:hint="Enter name of occupant/s"
+                    android:textColorHint="@color/hintTextColor"
+                    android:textColor="@color/primaryTextColor"
+                    android:inputType="text"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp" />
+            </LinearLayout>
+
+            <!-- Land Area Involved -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Land Area Involved (sq. meters)"
+                android:textSize="14sp"
+                android:textColor="@color/primaryTextColor"
+                android:layout_marginBottom="4dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_input_background"
+                android:padding="12dp"
+                android:layout_marginBottom="16dp">
+
+                <EditText
+                    android:id="@+id/landAreaInvolvedInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter land area in sq. meters"
+                    android:textColorHint="@color/hintTextColor"
+                    android:textColor="@color/primaryTextColor"
+                    android:inputType="numberDecimal"
+                    android:background="@android:color/transparent"
+                    android:padding="8dp" />
             </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- Next Button (keep original id) -->
+    <!-- Complete Button -->
     <Button
-        android:id="@+id/btnNextReport3"
+        android:id="@+id/btnCompleteReport"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="NEXT"
+        android:text="COMPLETE REPORT"
         android:textColor="@android:color/white"
         android:background="@drawable/rounded_button_background"
         android:textStyle="bold"

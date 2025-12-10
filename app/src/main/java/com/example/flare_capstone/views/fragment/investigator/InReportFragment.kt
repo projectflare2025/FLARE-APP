@@ -22,13 +22,6 @@ class InReportFragment : Fragment() {
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        binding.btnNextReport1.setOnClickListener {
-            findNavController().navigate(R.id.action_to_report2)
-        }
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
