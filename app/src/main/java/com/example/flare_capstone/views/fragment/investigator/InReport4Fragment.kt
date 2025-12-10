@@ -26,8 +26,9 @@ class InReport4Fragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.btnFinishReport.setOnClickListener {
-            findNavController().navigate(R.id.inHomeFragment)
+            findNavController().navigate(R.id.action_to_report5)
         }
+
     }
 
     override fun onDestroyView() {
