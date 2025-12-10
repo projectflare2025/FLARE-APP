@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -147,16 +148,23 @@ class VerifyEmailDialogFragment : DialogFragment() {
     }
 
     private fun resendEmail() {
-        val user = auth.currentUser ?: return toast("No session found.")
+        val user = auth.currentUser ?: run {
+            toast("No session found.")
+            return
+        }
 
-        auth.currentUser?.sendEmailVerification()
-            ?.addOnSuccessListener {
-                toast("Verification email sent to $user")
+        user.sendEmailVerification()
+            .addOnSuccessListener {
+                Log.d("VerifyEmailDialog", "Resent verification email to ${user.email}")
+                toast("Verification email sent to ${user.email}")
+                startCooldown()
             }
-            ?.addOnFailureListener { e ->
+            .addOnFailureListener { e ->
+                Log.e("VerifyEmailDialog", "Resend verification failed", e)
                 toast("Failed to send verification: ${e.message}")
             }
     }
+
 
     private fun startCooldown() {
         binding.resendBtn.isEnabled = false

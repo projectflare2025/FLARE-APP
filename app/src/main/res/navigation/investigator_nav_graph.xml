@@ -88,7 +88,7 @@
     <!-- ===================== -->
     <fragment
         android:id="@+id/inPorfileFragment"
-        android:name="com.example.flare_capstone.views.fragment.investigator.InPorfileFragment"
+        android:name="com.example.flare_capstone.views.fragment.investigator.InProfileFragment"
         android:label="Profile">
 
         <action android:id="@+id/action_profile_to_home" app:destination="@id/inHomeFragment" />

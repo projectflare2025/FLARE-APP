@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.text.InputFilter
 import android.text.method.DigitsKeyListener
 import android.text.method.PasswordTransformationMethod
+import android.util.Log
 import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -101,19 +102,22 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
         auth.createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (!task.isSuccessful) {
+                    Log.e("RegisterFragment", "createUser failed", task.exception)
                     toast("Registration failed: ${task.exception?.message}")
                     return@addOnCompleteListener
                 }
 
                 val user = auth.currentUser
                 if (user == null) {
+                    Log.e("RegisterFragment", "User is null after createUser")
                     toast("User session error. Try again.")
                     return@addOnCompleteListener
                 }
 
                 user.sendEmailVerification()
                     .addOnSuccessListener {
-                        toast("Verification email sent to $email")
+                        Log.d("RegisterFragment", "Verification email sent to ${user.email}")
+                        toast("Verification email sent to ${user.email}")
 
                         val data = hashMapOf(
                             "uid" to user.uid,
@@ -123,7 +127,7 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
                             "status" to "unverified",
                             "createdAt" to FieldValue.serverTimestamp(),
                             "verifiedAt" to null,
-                            "role" to "com/example/flare_capstone/views/BFP/User"
+                            "role" to "user"
                         )
 
                         firestore.collection("users")
@@ -134,13 +138,16 @@ class RegisterFragment : Fragment(R.layout.fragment_register) {
                                 dialog.show(parentFragmentManager, "VerifyEmailDialog")
                             }
                             .addOnFailureListener { e ->
+                                Log.e("RegisterFragment", "Failed to save user", e)
                                 toast("Failed to save user: ${e.message}")
                             }
                     }
                     .addOnFailureListener { e ->
+                        Log.e("RegisterFragment", "sendEmailVerification failed", e)
                         toast("Failed to send verification: ${e.message}")
                     }
             }
+
     }
 
     private fun setupPasswordToggle(editText: EditText) {

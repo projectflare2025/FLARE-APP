@@ -10,7 +10,7 @@ import com.example.flare_capstone.databinding.FragmentInPorfileBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.example.flare_capstone.R
 
-class InPorfileFragment : Fragment() {
+class InProfileFragment : Fragment() {
 
     private var _binding: FragmentInPorfileBinding? = null
     private val binding get() = _binding!!

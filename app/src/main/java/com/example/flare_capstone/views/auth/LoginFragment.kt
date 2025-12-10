@@ -105,16 +105,6 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             return
         }
 
-        if(email.equals("investigator")&&password.equals("investigator")){
-            startActivity(Intent(requireContext(), InvestigatorActivity::class.java))
-
-        }
-        if(email.equals("unit")&&password.equals("unit")){
-            startActivity(Intent(requireContext(), FirefighterActivity::class.java))
-
-        }
-
-
 
         setLoginEnabled(false)
         showLoadingDialog()
@@ -161,18 +151,15 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     }
 
     private fun loginVerifiedUser(uid: String) {
+
+        // Instead of rejecting missing users doc, we simply continue
         firestore.collection("users")
             .document(uid)
             .get()
             .addOnSuccessListener { doc ->
-                if (!doc.exists()) {
-                    toast("Account data missing.")
-                    auth.signOut()
-                    setLoginEnabled(true)
-                    return@addOnSuccessListener
-                }
 
-                val status = doc.getString("status") ?: "unverified"
+                val status = doc.getString("status") ?: "verified"
+                // Default to "verified" so responders/units can still login
 
                 if (status != "verified") {
                     toast("Your account is still pending verification.")
@@ -180,13 +167,15 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                     return@addOnSuccessListener
                 }
 
+                // Now route based on responders/units
                 routeToDashboard()
             }
             .addOnFailureListener {
-                toast("Failed to fetch user: ${it.message}")
-                setLoginEnabled(true)
+                // Even if users doc fails, still continue
+                routeToDashboard()
             }
     }
+
 
     private fun showVerifyDialogOnly() {
         val dialog = VerifyEmailDialogFragment()
@@ -194,8 +183,69 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
     }
 
     private fun routeToDashboard() {
-        startActivity(Intent(requireContext(), UserActivity::class.java))
+        val user = auth.currentUser
+        if (user == null) {
+            // Fallback – if somehow no user, send to normal user dashboard
+            startActivity(Intent(requireContext(), UserActivity::class.java))
+            requireActivity().finish()
+            return
+        }
+
+        val email = user.email?.trim()?.lowercase()
+
+        if (email.isNullOrEmpty()) {
+            // If no email (should not normally happen), just treat as normal user
+            startActivity(Intent(requireContext(), UserActivity::class.java))
+            requireActivity().finish()
+            return
+        }
+
+        // 1️⃣ Check RESPONDERS: email + role == "Investigator"
+        firestore.collection("responders")
+            .whereEqualTo("email", email)
+            .limit(1)
+            .get()
+            .addOnSuccessListener { responderSnap ->
+                if (!responderSnap.isEmpty) {
+                    val responderDoc = responderSnap.documents[0]
+                    val role = responderDoc.getString("role") ?: ""
+
+                    if (role.equals("Investigator", ignoreCase = true)) {
+                        // Investigator responder
+                        startActivity(Intent(requireContext(), InvestigatorActivity::class.java))
+                        requireActivity().finish()
+                        return@addOnSuccessListener
+                    }
+                }
+
+                // 2️⃣ Not an Investigator responder → check UNITS by email
+                firestore.collection("units")
+                    .whereEqualTo("email", email)
+                    .limit(1)
+                    .get()
+                    .addOnSuccessListener { unitsSnap ->
+                        if (!unitsSnap.isEmpty) {
+                            // Email exists in units –> Firefighter / unit dashboard
+                            startActivity(Intent(requireContext(), FirefighterActivity::class.java))
+                        } else {
+                            // 3️⃣ Default –> regular user dashboard
+                            startActivity(Intent(requireContext(), UserActivity::class.java))
+                        }
+                        requireActivity().finish()
+                    }
+                    .addOnFailureListener {
+                        // If units query fails, still allow normal user login
+                        startActivity(Intent(requireContext(), UserActivity::class.java))
+                        requireActivity().finish()
+                    }
+            }
+            .addOnFailureListener {
+                // If responders query itself fails, still allow normal user login
+                startActivity(Intent(requireContext(), UserActivity::class.java))
+                requireActivity().finish()
+            }
     }
+
 
     private fun setLoginEnabled(enabled: Boolean) {
         binding.loginButton.isEnabled = enabled
