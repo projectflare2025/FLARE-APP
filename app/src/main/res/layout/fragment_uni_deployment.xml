@@ -32,17 +32,6 @@
             android:layout_marginTop="4dp"
             android:layout_marginBottom="12dp" />
 
-        <!-- 🗺 BIG MAP -->
-        <TextView
-            android:id="@+id/mapLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Map"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@color/primaryColor"
-            android:layout_marginBottom="4dp" />
-
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/inboxMapCard"
             android:layout_width="match_parent"

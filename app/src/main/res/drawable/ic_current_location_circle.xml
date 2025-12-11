@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Outer soft circle (glow effect) -->
+    <path
+        android:fillColor="#331E88E5"
+        android:pathData="M12,2a10,10 0 1,1 0,20a10,10 0 1,1 0,-20z" />
+
+    <!-- Inner solid circle -->
+    <path
+        android:fillColor="#1E88E5"
+        android:pathData="M12,6a6,6 0 1,1 0,12a6,6 0 1,1 0,-12z" />
+
+</vector>

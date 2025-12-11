@@ -82,7 +82,7 @@ class UnitDeploymentChatDialogFragment : DialogFragment() {
 
     private fun addSampleMessages() {
         addMessageBubble(
-            "Unit 01, this is Central Command. We’ve received a confirmed report of a structural fire near Purok 7. " +
+            "Unit 01, this is Central Command. " +
                     "Please proceed to the location immediately and provide a status update once you arrive.",
             fromMe = false
         )
