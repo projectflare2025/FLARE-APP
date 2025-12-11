@@ -4,9 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.flare_capstone.R
+import com.example.flare_capstone.adapter.DeploymentAdapter
 import com.example.flare_capstone.databinding.FragmentUniDeploymentBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -33,41 +34,36 @@ class UnitDeploymentFragment : Fragment(), OnMapReadyCallback {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 🔹 Attach a SupportMapFragment into the mapContainer (same pattern as UnitHomeFragment)
-        val existing = childFragmentManager.findFragmentById(binding.mapContainer.id) as? SupportMapFragment
+        // 🔹 Headline
+        binding.tvHeadline.text = "Deployment Overview"
+
+        // 🔹 Setup Google Map inside inboxMapContainer
+        val existing = childFragmentManager.findFragmentById(R.id.inboxMapContainer) as? SupportMapFragment
         val mapFragment = existing ?: SupportMapFragment.newInstance().also {
             childFragmentManager.beginTransaction()
-                .replace(binding.mapContainer.id, it)
+                .replace(R.id.inboxMapContainer, it)
                 .commit()
-            childFragmentManager.executePendingTransactions()
         }
         mapFragment.getMapAsync(this)
 
-        // 🔹 Header text (if you have a TextView in the layout)
-        // Example: binding.headerTitle.text = "Deployment"
-
-        // 🔹 Bottom action button
-        // If your layout uses "completed" as the id:
-        val button = binding.root.findViewById<View>(R.id.completed)
-            ?: binding.root.findViewById(R.id.btnAction) // fallback if you renamed it
-
-        button?.setOnClickListener {
-            Toast.makeText(requireContext(), "No active deployment selected.", Toast.LENGTH_SHORT).show()
+        // 🔹 RecyclerView with static deployments + dialog on click
+        binding.recentReportRecyclerView.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = DeploymentAdapter(childFragmentManager)   // << important
         }
 
-        // 🔹 Initial info text
-        binding.selectedInfo.text = "No active deployments"
+        // Static data -> no empty state
+        binding.emptyStateText.visibility = View.GONE
     }
 
     override fun onMapReady(map: GoogleMap) {
         gMap = map
 
-        // Basic map UI
         gMap?.uiSettings?.isZoomControlsEnabled = true
         gMap?.uiSettings?.isCompassEnabled = true
 
-        // Default center (example: Tagum or your target city)
-        val defaultCenter = LatLng(7.4478, 125.8096) // change to your desired default
+        // Default center (Tagum sample)
+        val defaultCenter = LatLng(7.4478, 125.8096)
         gMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultCenter, 13f))
     }
 

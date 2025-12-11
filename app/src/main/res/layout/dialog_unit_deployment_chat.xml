@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#80000000"> <!-- Semi-transparent dim -->
+
+    <!-- Centered Rounded Dialog -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/dialogCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:backgroundTint="@android:color/white"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="10dp"
+        android:padding="16dp">
+
+        <!-- Inner content -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp">
+
+            <!-- Top bar: back + icon + title/subtitle -->
+            <ImageView
+                android:id="@+id/btnClose"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/ic_backed"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/deployProfileIcon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/profile_bg_circle"
+                android:src="@drawable/station_logo"
+                android:scaleType="centerCrop"
+                app:layout_constraintStart_toEndOf="@id/btnClose"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <LinearLayout
+                android:id="@+id/titleContainer"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                app:layout_constraintStart_toEndOf="@id/deployProfileIcon"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/deployProfileIcon"
+                app:layout_constraintBottom_toBottomOf="@id/deployProfileIcon">
+
+                <TextView
+                    android:id="@+id/tvDialogTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Deployment Chat"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primaryColor" />
+
+                <TextView
+                    android:id="@+id/tvDialogSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Fire Suppression • Jan 20, 2025"
+                    android:textSize="13sp"
+                    android:textColor="@color/gray" />
+            </LinearLayout>
+
+            <!-- Chat Scrollable Area -->
+            <ScrollView
+                android:id="@+id/scrollView"
+                android:layout_width="0dp"
+                android:layout_height="350dp"
+                android:layout_marginTop="16dp"
+                android:fillViewport="true"
+                app:layout_constraintTop_toBottomOf="@id/deployProfileIcon"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/chatInputArea">
+
+                <LinearLayout
+                    android:id="@+id/chatMessagesContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp" />
+            </ScrollView>
+
+            <!-- Chat Input Area (static for showcase) -->
+            <LinearLayout
+                android:id="@+id/chatInputArea"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="12dp"
+                android:background="#FFFFFF"
+                android:elevation="8dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <ImageView
+                    android:id="@+id/cameraIcon"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@drawable/ic_camera"
+                    android:layout_marginEnd="12dp" />
+
+                <ImageView
+                    android:id="@+id/galleryIcon"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@drawable/ic_gallery"
+                    android:layout_marginEnd="12dp" />
+
+                <!-- Text input -->
+                <EditText
+                    android:id="@+id/messageInput"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="35dp"
+                    android:maxHeight="120dp"
+                    android:maxLines="3"
+                    android:layout_weight="1"
+                    android:hint="Message"
+                    android:paddingStart="12dp"
+                    android:paddingEnd="12dp"
+                    android:background="@drawable/input_field_bg"
+                    android:textColor="@android:color/black"
+                    android:textColorHint="@color/gray"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical|start" />
+
+                <!-- Send button -->
+                <ImageView
+                    android:id="@+id/sendButton"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:src="@drawable/icon_send"
+                    android:layout_marginStart="12dp" />
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</FrameLayout>
