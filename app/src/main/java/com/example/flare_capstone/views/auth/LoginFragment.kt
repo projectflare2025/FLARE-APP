@@ -260,7 +260,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                                 Intent(
                                     requireContext(),
                                     UserActivity::class.java
-                                )
+                                 )
                             )
                         }
                         requireActivity().finish()
