@@ -2,75 +2,73 @@ package com.example.flare_capstone.data.database
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.flare_capstone.data.model.User
-import com.google.gson.Gson
 
 object UserSession {
-    private const val PREF_NAME = "user_session"
-    private const val KEY_USER_INFO = "user_info"
-    private const val KEY_LAST_LOGIN = "last_login_time"
-    private const val KEY_USER_STATUS = "user_status"
-    private const val KEY_HEALTH_CONDITIONS = "health_conditions"
-    private const val KEY_HEALTH_FETCH_TIME = "health_fetch_time"
-    private const val OFFLINE_ACCESS_WINDOW_MS = 24 * 60 * 60 * 1000L // 1 day
+
+    private const val PREF_NAME = "flare_session"
+
+    private const val KEY_IS_LOGGED_IN = "isLoggedIn"
+    private const val KEY_ROLE = "role"              // "user" | "investigator" | "firefighter"
+    private const val KEY_USER_ID = "userId"
+    private const val KEY_INVESTIGATOR_ID = "investigatorId"
+    private const val KEY_UNIT_ID = "unitId"
+    private const val KEY_EMAIL = "email"
 
     private lateinit var prefs: SharedPreferences
-    private val gson = Gson()
 
     fun init(context: Context) {
-        prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        if (!::prefs.isInitialized) {
+            prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        }
     }
 
-    fun setCurrentUser(user: User) {
-        val json = gson.toJson(user)
-        prefs.edit()
-            .putString(KEY_USER_INFO, json)
-            .putLong(KEY_LAST_LOGIN, System.currentTimeMillis())
-            .apply()
-    }
-
-    fun getCurrentUser(): User? {
-        val json = prefs.getString(KEY_USER_INFO, null)
-        return if (json != null) gson.fromJson(json, User::class.java) else null
-    }
-
-    fun isLoggedIn(): Boolean = getCurrentUser() != null
-
-    fun clearSession() {
+    fun clear() {
+        if (!::prefs.isInitialized) return
         prefs.edit().clear().apply()
     }
 
-    fun saveLastLoginTime() {
-        prefs.edit().putLong(KEY_LAST_LOGIN, System.currentTimeMillis()).apply()
+    fun isLoggedIn(): Boolean {
+        if (!::prefs.isInitialized) return false
+        return prefs.getBoolean(KEY_IS_LOGGED_IN, false)
     }
 
-    fun getLastLoginTime(): Long = prefs.getLong(KEY_LAST_LOGIN, 0)
-
-    fun isOfflineAccessStillValid(): Boolean {
-        val now = System.currentTimeMillis()
-        return now - getLastLoginTime() <= OFFLINE_ACCESS_WINDOW_MS
+    fun getRole(): String? {
+        if (!::prefs.isInitialized) return null
+        return prefs.getString(KEY_ROLE, null)
     }
 
-    fun saveUserStatus(isActive: Boolean) {
-        prefs.edit().putBoolean(KEY_USER_STATUS, isActive).apply()
-    }
+    fun getInvestigatorId(): String? =
+        if (!::prefs.isInitialized) null else prefs.getString(KEY_INVESTIGATOR_ID, null)
 
-    fun getUserStatus(): Boolean = prefs.getBoolean(KEY_USER_STATUS, false)
+    fun getUnitId(): String? =
+        if (!::prefs.isInitialized) null else prefs.getString(KEY_UNIT_ID, null)
 
-    fun saveHealthConditions(conditions: List<String>) {
+    /* ---------- Save session for each role ---------- */
+
+    fun loginUser(userId: String, email: String?) {
         prefs.edit()
-            .putString(KEY_HEALTH_CONDITIONS, gson.toJson(conditions))
-            .putLong(KEY_HEALTH_FETCH_TIME, System.currentTimeMillis())
+            .putBoolean(KEY_IS_LOGGED_IN, true)
+            .putString(KEY_ROLE, "user")
+            .putString(KEY_USER_ID, userId)
+            .putString(KEY_EMAIL, email)
             .apply()
     }
 
-    fun getCachedHealthConditions(): List<String>? {
-        val json = prefs.getString(KEY_HEALTH_CONDITIONS, null) ?: return null
-        val time = prefs.getLong(KEY_HEALTH_FETCH_TIME, 0)
-        val now = System.currentTimeMillis()
-        val validFor = 24 * 60 * 60 * 1000L
-        return if (now - time <= validFor) {
-            gson.fromJson(json, Array<String>::class.java).toList()
-        } else null
+    fun loginInvestigator(investigatorId: String, email: String?) {
+        prefs.edit()
+            .putBoolean(KEY_IS_LOGGED_IN, true)
+            .putString(KEY_ROLE, "investigator")
+            .putString(KEY_INVESTIGATOR_ID, investigatorId)   // same key your other code reads
+            .putString(KEY_EMAIL, email)
+            .apply()
+    }
+
+    fun loginFirefighter(unitId: String, email: String?) {
+        prefs.edit()
+            .putBoolean(KEY_IS_LOGGED_IN, true)
+            .putString(KEY_ROLE, "firefighter")
+            .putString(KEY_UNIT_ID, unitId)                   // same key as before
+            .putString(KEY_EMAIL, email)
+            .apply()
     }
 }

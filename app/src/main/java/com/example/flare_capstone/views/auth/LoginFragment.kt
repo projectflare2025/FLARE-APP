@@ -28,6 +28,8 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
+import android.content.SharedPreferences
+import com.example.flare_capstone.data.database.UserSession
 
 class LoginFragment : Fragment(R.layout.fragment_login) {
 
@@ -198,10 +200,35 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
             return
         }
 
-        val prefs = requireContext()
-            .getSharedPreferences("flare_session", Context.MODE_PRIVATE)
+        // Make sure session helper is initialized
+        UserSession.init(requireContext())
 
-        // 1️⃣ Check RESPONDERS: email + role == "Investigator"
+        // 1️⃣ First check USERS collection – role "user"
+        firestore.collection("users")
+            .document(user.uid)
+            .get()
+            .addOnSuccessListener { userDoc ->
+                val roleInUsers = userDoc.getString("role")?.lowercase()
+
+                if (roleInUsers == "user") {
+                    // 👉 Normal user
+                    UserSession.loginUser(user.uid, email)
+                    startActivity(Intent(requireContext(), UserActivity::class.java))
+                    requireActivity().finish()
+                    return@addOnSuccessListener
+                }
+
+                // Not plain "user" → use responders / units
+                routeByRespondersAndUnitsFromFragment(email)
+            }
+            .addOnFailureListener {
+                // If users doc fails, still try responders/units
+                routeByRespondersAndUnitsFromFragment(email)
+            }
+    }
+
+    private fun routeByRespondersAndUnitsFromFragment(email: String) {
+        // 1️⃣ RESPONDERS: Investigator
         firestore.collection("responders")
             .whereEqualTo("email", email)
             .limit(1)
@@ -212,30 +239,19 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                     val role = responderDoc.getString("role") ?: ""
 
                     if (role.equals("Investigator", ignoreCase = true)) {
+                        val investigatorIdFromAuthUid = responderDoc.getString("authUid")
+                        val investigatorId = investigatorIdFromAuthUid ?: responderDoc.id
 
-                        // Prefer authUid (matches Angular), fallback to doc.id
-                        val investigatorIdFromAuthUid =
-                            responderDoc.getString("authUid")
-                        val investigatorId =
-                            investigatorIdFromAuthUid ?: responderDoc.id
+                        // Save session as investigator
+                        UserSession.loginInvestigator(investigatorId, email)
 
-                        // ⭐ Save investigatorId to session
-                        prefs.edit()
-                            .putString("investigatorId", investigatorId)
-                            .apply()
-
-                        startActivity(
-                            Intent(
-                                requireContext(),
-                                InvestigatorActivity::class.java
-                            )
-                        )
+                        startActivity(Intent(requireContext(), InvestigatorActivity::class.java))
                         requireActivity().finish()
                         return@addOnSuccessListener
                     }
                 }
 
-                // 2️⃣ Not an Investigator → check UNITS by email
+                // 2️⃣ UNITS: Firefighter
                 firestore.collection("units")
                     .whereEqualTo("email", email)
                     .limit(1)
@@ -245,36 +261,30 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                             val unitDoc = unitsSnap.documents[0]
                             val unitId = unitDoc.id
 
-                            prefs.edit()
-                                .putString("unitId", unitId)
-                                .apply()
+                            // Save session as firefighter
+                            UserSession.loginFirefighter(unitId, email)
 
-                            startActivity(
-                                Intent(
-                                    requireContext(),
-                                    FirefighterActivity::class.java
-                                )
-                            )
+                            startActivity(Intent(requireContext(), FirefighterActivity::class.java))
                         } else {
-                            startActivity(
-                                Intent(
-                                    requireContext(),
-                                    UserActivity::class.java
-                                 )
-                            )
+                            // 3️⃣ Fallback – treat as simple user
+                            UserSession.loginUser(auth.currentUser!!.uid, email)
+                            startActivity(Intent(requireContext(), UserActivity::class.java))
                         }
                         requireActivity().finish()
                     }
                     .addOnFailureListener {
+                        UserSession.loginUser(auth.currentUser!!.uid, email)
                         startActivity(Intent(requireContext(), UserActivity::class.java))
                         requireActivity().finish()
                     }
             }
             .addOnFailureListener {
+                UserSession.loginUser(auth.currentUser!!.uid, email)
                 startActivity(Intent(requireContext(), UserActivity::class.java))
                 requireActivity().finish()
             }
     }
+
 
 
 

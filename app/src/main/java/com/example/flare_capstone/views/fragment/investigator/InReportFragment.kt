@@ -21,6 +21,7 @@ import com.google.firebase.database.*
 class InReportFragment : Fragment() {
 
     private var _binding: FragmentInReportBinding? = null
+    // Use this only when you're sure the view exists (onCreateView → onDestroyView)
     private val binding get() = _binding!!
 
     private lateinit var adapter: InvestigatorReportAdapter
@@ -97,13 +98,14 @@ class InReportFragment : Fragment() {
 
         if (sessionId.isNullOrBlank() && authUid.isNullOrBlank()) {
             Log.w("InReportFragment", "No investigatorId in session or auth UID")
-            binding.emptyStateText.visibility = View.VISIBLE
+            // Only touch binding if view is still alive
+            _binding?.emptyStateText?.visibility = View.VISIBLE
             return
         }
 
         mergedReports.clear()
         adapter.updateList(emptyList())
-        binding.emptyStateText.visibility = View.GONE
+        _binding?.emptyStateText?.visibility = View.GONE
 
         // Load from each category
         categories.forEach { typeCategory ->
@@ -126,6 +128,13 @@ class InReportFragment : Fragment() {
             .child(typeCategory)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+
+                    // If the view is already destroyed, don't update UI
+                    if (_binding == null || !isAdded) {
+                        Log.d("InReportFragment", "onDataChange: view destroyed, skipping UI update")
+                        return
+                    }
+
                     Log.d(
                         "InReportFragment",
                         "investigatorReports/$typeCategory children = ${snapshot.childrenCount}"
@@ -195,6 +204,13 @@ class InReportFragment : Fragment() {
             .child(reportId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+
+                    // If the view is already destroyed, don't update UI
+                    if (_binding == null || !isAdded) {
+                        Log.d("InReportFragment", "fetchFullReportDetails.onDataChange: view destroyed, skipping UI update")
+                        return
+                    }
+
                     if (!snapshot.exists()) {
                         Log.w(
                             "InReportFragment",
@@ -234,8 +250,15 @@ class InReportFragment : Fragment() {
 
     /**
      * Sort and update adapter + empty state.
+     * This is now safe against a null binding.
      */
     private fun refreshListUI() {
+        // If the view is already destroyed, there's no UI to refresh
+        val binding = _binding ?: run {
+            Log.d("InReportFragment", "refreshListUI: view destroyed, skipping")
+            return
+        }
+
         val sorted = mergedReports
             .distinctBy { it.reportType + "|" + it.reportId } // avoid duplicates
             .sortedByDescending { it.acceptedAt ?: 0L }
