@@ -149,6 +149,7 @@ class FirefighterActivity : AppCompatActivity() {
 
         val menuItems = arrayOf(
             CbnMenuItem(R.drawable.ic_dashboard, R.drawable.avd_dashboard , R.id.homeFireFighterFragment),
+            CbnMenuItem(R.drawable.ic_dashboard, R.drawable.avd_dashboard, R.id.unitDeploymentFragment),
             CbnMenuItem(R.drawable.ic_dashboard, R.drawable.avd_dashboard, R.id.inboxFireFighterFragment),
             CbnMenuItem(R.drawable.ic_dashboard, R.drawable.avd_dashboard, R.id.profileFireFighterFragment)
         )
