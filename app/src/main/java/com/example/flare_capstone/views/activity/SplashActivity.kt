@@ -97,19 +97,6 @@ class SplashActivity : AppCompatActivity() {
                             .update("verifiedAt", Timestamp.now())
                     }
 
-                    // 🔥 Firefighter emails
-                    val firefighterEmails = listOf(
-                        "tcwestfiresubstation@gmail.com",
-                        "lafilipinafire@gmail.com",
-                        "bfp_tagumcity@yahoo.com"
-                    )
-
-                    if (firefighterEmails.contains(user.email)) {
-                        Toast.makeText(this, "Welcome back, Firefighter", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this, FirefighterActivity::class.java))
-                        finish()
-                        return@addOnSuccessListener
-                    }
 
                     // 🔥 Normal users
                     Toast.makeText(this, "Welcome back", Toast.LENGTH_SHORT).show()

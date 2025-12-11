@@ -16,6 +16,7 @@ import com.example.flare_capstone.views.fragment.profile.EditProfileActivity
 import com.example.flare_capstone.views.fragment.profile.MyReportActivity
 import com.example.flare_capstone.R
 import com.example.flare_capstone.databinding.FragmentProfileBinding
+import com.example.flare_capstone.views.activity.AuthActivity
 import com.example.flare_capstone.views.auth.ChangePasswordFragment
 import com.example.flare_capstone.views.auth.MainFragment
 import com.google.firebase.auth.FirebaseAuth
@@ -104,7 +105,7 @@ class ProfileFragment : Fragment() {
             .setView(dialogView)
             .setPositiveButton("Yes") { _, _ ->
                 FirebaseAuth.getInstance().signOut()
-                startActivity(Intent(requireActivity(), MainFragment::class.java))
+                startActivity(Intent(requireActivity(), AuthActivity::class.java))
                 Toast.makeText(requireActivity(), "You have been logged out.", Toast.LENGTH_SHORT).show()
                 requireActivity().finish()
             }
