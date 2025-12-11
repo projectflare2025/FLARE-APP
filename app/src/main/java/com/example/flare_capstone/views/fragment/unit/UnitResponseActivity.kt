@@ -1,4 +1,4 @@
-package com.example.flare_capstone.views.fragment.bfp
+package com.example.flare_capstone.views.fragment.unit
 
 import android.Manifest
 import android.animation.LayoutTransition
@@ -63,7 +63,7 @@ import java.util.Locale
  *  • Pick/take photo -> confirmation dialog before send
  *  • Bubbles: text / image / audio (playable)
  */
-class FireFighterResponseActivity : AppCompatActivity() {
+class UnitResponseActivity : AppCompatActivity() {
 
     // ----- Firebase paths -----
     private val ROOT = "TagumCityCentralFireStation"
@@ -410,7 +410,7 @@ class FireFighterResponseActivity : AppCompatActivity() {
             ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (!snapshot.hasChildren()) {
-                    Toast.makeText(this@FireFighterResponseActivity, "Account not found for $email", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@UnitResponseActivity, "Account not found for $email", Toast.LENGTH_SHORT).show()
                     return
                 }
                 val first = snapshot.children.first()
@@ -420,7 +420,7 @@ class FireFighterResponseActivity : AppCompatActivity() {
                 attachMessages()
             }
             override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@FireFighterResponseActivity, "Failed: ${error.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@UnitResponseActivity, "Failed: ${error.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }

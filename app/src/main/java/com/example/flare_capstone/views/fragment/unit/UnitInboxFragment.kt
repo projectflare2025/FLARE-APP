@@ -1,4 +1,4 @@
-package com.example.flare_capstone.views.fragment.bfp
+package com.example.flare_capstone.views.fragment.unit
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -18,10 +18,10 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
 
-class InboxFireFighterFragment : Fragment() {
+class UnitInboxFragment : Fragment() {
 
     private lateinit var recyclerView: RecyclerView
-    private lateinit var adapter: FireFighterResponseMessageAdapter
+    private lateinit var adapter: UnitResponseMessageAdapter
     private var emptyText: TextView? = null
     private var searchInput: EditText? = null
 
@@ -49,7 +49,7 @@ class InboxFireFighterFragment : Fragment() {
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.setHasFixedSize(true)
 
-        adapter = FireFighterResponseMessageAdapter(mutableListOf()) { /* open chat if needed */ }
+        adapter = UnitResponseMessageAdapter(mutableListOf()) { /* open chat if needed */ }
         recyclerView.adapter = adapter
 
         attachForLoggedInAccount()

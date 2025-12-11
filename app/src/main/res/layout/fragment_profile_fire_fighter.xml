@@ -8,7 +8,6 @@
     android:background="@color/white"
     android:padding="16dp">
 
-
     <!-- 👤 Profile Header -->
     <LinearLayout
         android:id="@+id/profileHeader"
@@ -49,13 +48,9 @@
             android:textColor="@color/textGray"
             android:layout_marginBottom="4dp" />
 
-
-
     </LinearLayout>
 
-
-
-    <!-- 📦 My Membership -->
+    <!-- 👤 My Account -->
     <LinearLayout
         android:id="@+id/planGroup"
         android:layout_width="match_parent"
@@ -77,8 +72,6 @@
             android:textStyle="bold"
             android:textColor="@color/primaryColor"
             android:layout_marginBottom="12dp" />
-
-
 
         <LinearLayout
             android:id="@+id/editProfile"
@@ -105,6 +98,82 @@
                 android:layout_weight="1" />
         </LinearLayout>
 
+    </LinearLayout>
+
+    <!-- 📄 Reports (NEW GROUP) -->
+    <LinearLayout
+        android:id="@+id/reportGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/card_background"
+        android:padding="12dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintTop_toBottomOf="@id/planGroup"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reports"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/primaryColor"
+            android:layout_marginBottom="12dp" />
+
+        <!-- 🔥 Deploy Report -->
+        <LinearLayout
+            android:id="@+id/deployReport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="8dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_security"
+                android:layout_marginEnd="12dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Deploy Report"
+                android:textSize="16sp"
+                android:textColor="@color/primaryColor"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+        <!-- 📋 My Report -->
+        <LinearLayout
+            android:id="@+id/myReport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingVertical="8dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_security"
+                android:layout_marginEnd="12dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="My Report"
+                android:textSize="16sp"
+                android:textColor="@color/primaryColor"
+                android:layout_weight="1" />
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -118,7 +187,7 @@
         android:padding="12dp"
         android:layout_marginTop="14dp"
         android:layout_marginBottom="16dp"
-        app:layout_constraintTop_toBottomOf="@id/planGroup"
+        app:layout_constraintTop_toBottomOf="@id/reportGroup"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -206,9 +275,7 @@
                 android:layout_weight="1" />
         </LinearLayout>
 
-
     </LinearLayout>
-
 
     <!-- 🚪 Logout Button -->
     <Button

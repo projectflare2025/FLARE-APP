@@ -1,4 +1,4 @@
-package com.example.flare_capstone.views.fragment.bfp
+package com.example.flare_capstone.views.fragment.unit
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -16,10 +16,10 @@ import com.google.firebase.database.FirebaseDatabase
 import java.text.SimpleDateFormat
 import java.util.*
 
-class FireFighterResponseMessageAdapter(
+class UnitResponseMessageAdapter(
     private val stationList: MutableList<FireFighterStation>,
     private val onItemClick: (FireFighterStation) -> Unit
-) : RecyclerView.Adapter<FireFighterResponseMessageAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<UnitResponseMessageAdapter.ViewHolder>() {
 
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val profileIcon: ShapeableImageView = itemView.findViewById(R.id.profileIcon)
@@ -93,7 +93,7 @@ class FireFighterResponseMessageAdapter(
             val ctx = holder.itemView.context
 
             // Launch chat
-            val intent = Intent(ctx, FireFighterResponseActivity::class.java).apply {
+            val intent = Intent(ctx, UnitResponseActivity::class.java).apply {
                 val stationName = "Tagum City Central Fire Station"
                 putExtra("STATION_NAME", stationName)
                 putExtra("STATION_ID", station.id) // id == AllFireFighterAccount key

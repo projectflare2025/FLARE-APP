@@ -1,4 +1,4 @@
-package com.example.flare_capstone.views.fragment.bfp
+package com.example.flare_capstone.views.fragment.unit
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -23,7 +23,7 @@ import com.google.firebase.database.ValueEventListener
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-class FireFighterReportFragment : Fragment(R.layout.fragment_fire_fighter_report) {
+class UnitReportFragment : Fragment(R.layout.fragment_fire_fighter_report) {
 
     private lateinit var binding: FragmentFireFighterReportBinding
     private val db by lazy { FirebaseDatabase.getInstance().reference }

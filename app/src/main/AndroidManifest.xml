@@ -100,13 +100,13 @@
             android:name=".views.activity.FirefighterActivity"
             android:launchMode="singleTop" />
         <activity android:name=".views.fragment.profile.EditProfileActivity" />
-        <activity android:name=".views.fragment.bfp.FireFighterResponseActivity" />
+        <activity android:name=".views.fragment.unit.UnitResponseActivity" />
         <activity android:name=".views.fragment.profile.EditFirefighterProfileActivity" />
         <activity android:name=".views.fragment.settings.AboutAppActivity" />
         <activity android:name=".views.fragment.settings.UserGuideActivity" />
         <activity android:name=".views.fragment.profile.MyReportActivity" />
         <activity android:name=".views.fragment.settings.FireStationInfoActivity" />
-        <activity android:name=".views.fragment.bfp.FireFighterReportActivity" />
+        <activity android:name=".views.fragment.unit.UnitReportActivity" />
 
     </application>
 

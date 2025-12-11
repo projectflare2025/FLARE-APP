@@ -9,25 +9,37 @@
     <!-- ===================== -->
     <fragment
         android:id="@+id/homeFireFighterFragment"
-        android:name="com.example.flare_capstone.views.fragment.bfp.HomeFireFighterFragment"
+        android:name="com.example.flare_capstone.views.fragment.unit.UnitHomeFragment"
         android:label="Home">
 
-        <action android:id="@+id/action_home_to_report" app:destination="@id/fireFighterReportFragment" />
-        <action android:id="@+id/action_home_to_inbox" app:destination="@id/inboxFireFighterFragment" />
-        <action android:id="@+id/action_home_to_profile" app:destination="@id/profileFireFighterFragment" />
+        <!-- Removed: action_home_to_report -->
+        <action
+            android:id="@+id/action_home_to_inbox"
+            app:destination="@id/inboxFireFighterFragment" />
+        <action
+            android:id="@+id/action_home_to_profile"
+            app:destination="@id/profileFireFighterFragment" />
     </fragment>
 
     <!-- ===================== -->
-    <!--  FIRE FIGHTER REPORT -->
+    <!--  FIRE FIGHTER REPORT  -->
     <!-- ===================== -->
     <fragment
         android:id="@+id/fireFighterReportFragment"
-        android:name="com.example.flare_capstone.views.fragment.bfp.FireFighterReportFragment"
+        android:name="com.example.flare_capstone.views.fragment.unit.UnitReportFragment"
         android:label="FireFighter Report">
+        <!-- Optional: you can add actions back if you want explicit nav -->
+        <!-- Otherwise back button will just pop to Profile -->
+    </fragment>
 
-        <action android:id="@+id/action_report_to_home" app:destination="@id/homeFireFighterFragment" />
-        <action android:id="@+id/action_report_to_inbox" app:destination="@id/inboxFireFighterFragment" />
-        <action android:id="@+id/action_report_to_profile" app:destination="@id/profileFireFighterFragment" />
+    <!-- ===================== -->
+    <!--  DEPLOY REPORT (NEW)  -->
+    <!-- ===================== -->
+    <fragment
+        android:id="@+id/fireFighterDeployReport"
+        android:name="com.example.flare_capstone.views.fragment.unit.FireFighterDeployReport"
+        android:label="Deploy Report" >
+        <!-- Same as above, back will go to Profile by default -->
     </fragment>
 
     <!-- ===================== -->
@@ -35,26 +47,45 @@
     <!-- ===================== -->
     <fragment
         android:id="@+id/inboxFireFighterFragment"
-        android:name="com.example.flare_capstone.views.fragment.bfp.InboxFireFighterFragment"
+        android:name="com.example.flare_capstone.views.fragment.unit.UnitInboxFragment"
         android:label="Inbox">
 
-        <action android:id="@+id/action_inbox_to_home" app:destination="@id/homeFireFighterFragment" />
-        <action android:id="@+id/action_inbox_to_report" app:destination="@id/fireFighterReportFragment" />
-        <action android:id="@+id/action_inbox_to_profile" app:destination="@id/profileFireFighterFragment" />
-        <action android:id="@+id/action_inbox_to_response" app:destination="@id/fireFighterResponseActivity" />
+        <action
+            android:id="@+id/action_inbox_to_home"
+            app:destination="@id/homeFireFighterFragment" />
+        <!-- Removed: action_inbox_to_report -->
+        <action
+            android:id="@+id/action_inbox_to_profile"
+            app:destination="@id/profileFireFighterFragment" />
+        <action
+            android:id="@+id/action_inbox_to_response"
+            app:destination="@id/fireFighterResponseActivity" />
     </fragment>
 
     <!-- ===================== -->
-    <!--     PROFILE           -->
+    <!--        PROFILE        -->
     <!-- ===================== -->
     <fragment
         android:id="@+id/profileFireFighterFragment"
-        android:name="com.example.flare_capstone.views.fragment.bfp.ProfileFireFighterFragment"
+        android:name="com.example.flare_capstone.views.fragment.unit.UnitProfilerFragment"
         android:label="Profile">
 
-        <action android:id="@+id/action_profile_to_home" app:destination="@id/homeFireFighterFragment" />
-        <action android:id="@+id/action_profile_to_report" app:destination="@id/fireFighterReportFragment" />
-        <action android:id="@+id/action_profile_to_inbox" app:destination="@id/inboxFireFighterFragment" />
+        <action
+            android:id="@+id/action_profile_to_home"
+            app:destination="@id/homeFireFighterFragment" />
+        <action
+            android:id="@+id/action_profile_to_inbox"
+            app:destination="@id/inboxFireFighterFragment" />
+
+        <!-- 🔥 From Profile → Old report screen -->
+        <action
+            android:id="@+id/action_profile_to_report"
+            app:destination="@id/fireFighterReportFragment" />
+
+        <!-- 🔥 From Profile → New deploy report screen -->
+        <action
+            android:id="@+id/action_profile_to_deploy"
+            app:destination="@id/fireFighterDeployReport" />
     </fragment>
 
     <!-- ===================== -->
@@ -62,7 +93,7 @@
     <!-- ===================== -->
     <activity
         android:id="@+id/fireFighterResponseActivity"
-        android:name="com.example.flare_capstone.views.fragment.bfp.FireFighterResponseActivity"
+        android:name="com.example.flare_capstone.views.fragment.unit.UnitResponseActivity"
         android:label="FireFighter Response Activity" />
 
 </navigation>

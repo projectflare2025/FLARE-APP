@@ -1,4 +1,4 @@
-package com.example.flare_capstone.views.fragment.bfp
+package com.example.flare_capstone.views.fragment.unit
 
 import android.content.Context
 import android.os.Bundle
@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-class FireFighterReportActivity : AppCompatActivity() {
+class UnitReportActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityFireFighterReportBinding
 
@@ -136,7 +136,7 @@ class FireFighterReportActivity : AppCompatActivity() {
                     binding.swipe.isRefreshing = false
                 }
                 override fun onCancelled(e: DatabaseError) {
-                    Toast.makeText(this@FireFighterReportActivity, e.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@UnitReportActivity, e.message, Toast.LENGTH_SHORT).show()
                     binding.swipe.isRefreshing = false
                 }
             }
@@ -185,7 +185,7 @@ class FireFighterReportActivity : AppCompatActivity() {
                 }
 
                 override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(this@FireFighterReportActivity, error.message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@UnitReportActivity, error.message, Toast.LENGTH_SHORT).show()
                 }
             }
 

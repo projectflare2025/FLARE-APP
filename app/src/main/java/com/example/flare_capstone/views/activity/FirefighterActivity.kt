@@ -13,17 +13,21 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RawRes
 import androidx.annotation.RequiresPermission
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.navigation.fragment.NavHostFragment
 import com.example.flare_capstone.R
 import com.example.flare_capstone.databinding.ActivityDashboardFireFighterBinding
-import com.example.flare_capstone.views.fragment.bfp.FireFighterResponseActivity
+import com.example.flare_capstone.views.fragment.unit.UnitResponseActivity
 import com.google.android.gms.location.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ChildEventListener
@@ -44,17 +48,14 @@ class FirefighterActivity : AppCompatActivity() {
         const val TAG = "FF-Notif"
         const val NOTIF_REQ_CODE = 9001
 
-        // one channel per type
         const val CH_FIRE  = "ff_fire"
         const val CH_OTHER = "ff_other"
         const val CH_EMS   = "ff_ems"
         const val CH_SMS   = "ff_sms"
 
         const val OLD_CHANNEL_ID = "ff_incidents"
-
         const val CH_MSG  = "ff_admin_msg"
 
-        // 🔥 NEW: location permission request code
         const val LOC_REQ_CODE = 9002
     }
 
@@ -62,41 +63,40 @@ class FirefighterActivity : AppCompatActivity() {
     private lateinit var database: FirebaseDatabase
     private lateinit var prefs: SharedPreferences
 
-    // 🔹 Unit ID (from login session) for unitReports.unitId AND DeploymentRoot.units.unitId
     private var myUnitId: String = ""
-
-    // 🔹 For station-based AdminMessages (still using the old tree)
     private var stationAccountKey: String? = null
 
-    // Dedupe + lifecycle
     private val shownKeys = mutableSetOf<String>()
     private val liveListeners = mutableListOf<Pair<Query, ChildEventListener>>()
     private val liveValueListeners = mutableListOf<Pair<DatabaseReference, ValueEventListener>>()
 
     private var unreadAdminCount = 0
 
-    // 🔥 NEW: Location
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var locationCallback: LocationCallback? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        // 🔹 Edge-to-edge handled manually (like InvestigatorActivity)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         binding = ActivityDashboardFireFighterBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 🔹 Apply insets for status bar & gesture nav
+        applyWindowInsets()
 
         setupBottomNavigation()
 
         database = FirebaseDatabase.getInstance()
         prefs = getSharedPreferences("ff_notifs", MODE_PRIVATE)
 
-        // 🔹 Unit ID used in unitReports.unitId and DeploymentRoot.units.unitId
         val sessionPrefs = getSharedPreferences("flare_session", MODE_PRIVATE)
         myUnitId = sessionPrefs.getString("unitId", null)
             ?: FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
         Log.d(TAG, "myUnitId=$myUnitId")
 
-        // Station mapping only for AdminMessages
         val email = FirebaseAuth.getInstance().currentUser?.email?.lowercase()
         stationAccountKey = stationAccountForEmail(email)
         Log.d(TAG, "email=$email stationAccountKey=$stationAccountKey")
@@ -104,23 +104,41 @@ class FirefighterActivity : AppCompatActivity() {
         createNotificationChannels()
         maybeRequestPostNotifPermission()
 
-        // 🔥 init fused location client
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        // 🔥 start location updates (will request permission if needed)
         maybeStartLocationUpdates()
 
-        // 🔹 Listen for dispatches assigned to THIS UNIT
         listenUnitDispatches("FireReport",                     "New FIRE report")
         listenUnitDispatches("OtherEmergencyReport",           "New OTHER emergency")
         listenUnitDispatches("EmergencyMedicalServicesReport", "New EMS report")
         listenUnitDispatches("SmsReport",                      "New SMS emergency")
 
-        // Handle tap from a notification when app is cold-started
         handleIntent(intent)
 
         stationAccountKey?.let { acct ->
             watchAdminUnreadCount(acct)
             listenAdminMessagesForNotifications(acct)
+        }
+    }
+
+    // 🔹 Same logic as InvestigatorActivity, but using firefighter views
+    private fun applyWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+
+            // Push content down from the status bar
+            binding.navHostFragmentFirefighter.setPadding(
+                0,
+                systemBars.top,
+                0,
+                0
+            )
+
+            // Push bottom nav above gesture / 3-button nav bar
+            binding.bottomNavigationFirefighter.updateLayoutParams<ConstraintLayout.LayoutParams> {
+                bottomMargin = systemBars.bottom
+            }
+
+            insets
         }
     }
 
@@ -130,15 +148,15 @@ class FirefighterActivity : AppCompatActivity() {
         val navController = navHostFragment.navController
 
         val menuItems = arrayOf(
-            CbnMenuItem(R.drawable.ic_home, R.drawable.avd_home , R.id.homeFireFighterFragment),
-            CbnMenuItem(R.drawable.ic_services, R.drawable.avd_services, R.id.fireFighterReportFragment),
+            CbnMenuItem(R.drawable.ic_dashboard, R.drawable.avd_dashboard , R.id.homeFireFighterFragment),
             CbnMenuItem(R.drawable.ic_dashboard, R.drawable.avd_dashboard, R.id.inboxFireFighterFragment),
-            CbnMenuItem(R.drawable.ic_profile, R.drawable.avd_profile, R.id.profileFireFighterFragment)
+            CbnMenuItem(R.drawable.ic_dashboard, R.drawable.avd_dashboard, R.id.profileFireFighterFragment)
         )
 
         binding.bottomNavigationFirefighter.setMenuItems(menuItems, 0)
         binding.bottomNavigationFirefighter.setupWithNavController(navController)
     }
+
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -352,7 +370,7 @@ class FirefighterActivity : AppCompatActivity() {
             else -> "New message from Admin"
         }
 
-        val intent = Intent(this, FireFighterResponseActivity::class.java).apply {
+        val intent = Intent(this, UnitResponseActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra("from_notification_admin", true)
         }

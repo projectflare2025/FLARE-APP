@@ -1,4 +1,4 @@
-package com.example.flare_capstone.views.fragment.bfp
+package com.example.flare_capstone.views.fragment.unit
 
 import android.app.AlertDialog
 import android.content.Intent
@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController   // ✅ add this import
 import com.example.flare_capstone.views.fragment.profile.EditFirefighterProfileActivity
 import com.example.flare_capstone.R
 import com.example.flare_capstone.databinding.FragmentProfileFireFighterBinding
@@ -22,7 +23,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
-class ProfileFireFighterFragment : Fragment() {
+class UnitProfilerFragment : Fragment() {
 
     private var _binding: FragmentProfileFireFighterBinding? = null
     private val binding get() = _binding!!
@@ -30,7 +31,6 @@ class ProfileFireFighterFragment : Fragment() {
     private val auth by lazy { FirebaseAuth.getInstance() }
     private val db by lazy { FirebaseDatabase.getInstance().reference }
 
-    // Example result: "TagumCityCentralFireStation/FireFighter/AllFireFighterAccount/MabiniFireFighterAccount"
     private var matchedPath: String? = null
 
     override fun onCreateView(
@@ -56,7 +56,7 @@ class ProfileFireFighterFragment : Fragment() {
             loadAndBindProfile(email)
         }
 
-        // Edit Profile → launch firefighter editor with the matched path
+        // ✏️ Edit Profile
         binding.editProfile.setOnClickListener {
             val path = matchedPath
             if (path == null) {
@@ -68,11 +68,21 @@ class ProfileFireFighterFragment : Fragment() {
             startActivity(intent)
         }
 
+        // 📄 NEW: Navigate to Deploy Report
+        binding.deployReport.setOnClickListener {
+            findNavController().navigate(R.id.action_profile_to_deploy)
+        }
 
-        // Logout
+        // 📋 NEW: Navigate to My Report
+        binding.myReport.setOnClickListener {
+            findNavController().navigate(R.id.action_profile_to_report)
+        }
+
+        // 🚪 Logout
         binding.logoutButton.setOnClickListener {
             val dialogView = layoutInflater.inflate(R.layout.dialog_logout, null)
-            dialogView.findViewById<ImageView>(R.id.logoImageView)?.setImageResource(R.drawable.ic_logo)
+            dialogView.findViewById<ImageView>(R.id.logoImageView)
+                ?.setImageResource(R.drawable.ic_logo)
 
             AlertDialog.Builder(requireActivity())
                 .setView(dialogView)

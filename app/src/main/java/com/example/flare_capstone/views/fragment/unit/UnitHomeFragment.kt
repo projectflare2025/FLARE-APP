@@ -1,4 +1,4 @@
-package com.example.flare_capstone.views.fragment.bfp
+package com.example.flare_capstone.views.fragment.unit
 
 import android.Manifest
 import android.content.Context
@@ -61,7 +61,7 @@ import java.util.concurrent.Executors
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class HomeFireFighterFragment : Fragment(), OnMapReadyCallback {
+class UnitHomeFragment : Fragment(), OnMapReadyCallback {
 
     private val TAG = "HomeFF"
 
