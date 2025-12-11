@@ -192,12 +192,14 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
         }
 
         val email = user.email?.trim()?.lowercase()
-
         if (email.isNullOrEmpty()) {
             startActivity(Intent(requireContext(), UserActivity::class.java))
             requireActivity().finish()
             return
         }
+
+        val prefs = requireContext()
+            .getSharedPreferences("flare_session", Context.MODE_PRIVATE)
 
         // 1️⃣ Check RESPONDERS: email + role == "Investigator"
         firestore.collection("responders")
@@ -210,38 +212,56 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                     val role = responderDoc.getString("role") ?: ""
 
                     if (role.equals("Investigator", ignoreCase = true)) {
-                        startActivity(Intent(requireContext(), InvestigatorActivity::class.java))
+
+                        // Prefer authUid (matches Angular), fallback to doc.id
+                        val investigatorIdFromAuthUid =
+                            responderDoc.getString("authUid")
+                        val investigatorId =
+                            investigatorIdFromAuthUid ?: responderDoc.id
+
+                        // ⭐ Save investigatorId to session
+                        prefs.edit()
+                            .putString("investigatorId", investigatorId)
+                            .apply()
+
+                        startActivity(
+                            Intent(
+                                requireContext(),
+                                InvestigatorActivity::class.java
+                            )
+                        )
                         requireActivity().finish()
                         return@addOnSuccessListener
                     }
                 }
 
-                // 2️⃣ Not an Investigator responder → check UNITS by email
+                // 2️⃣ Not an Investigator → check UNITS by email
                 firestore.collection("units")
                     .whereEqualTo("email", email)
                     .limit(1)
                     .get()
                     .addOnSuccessListener { unitsSnap ->
                         if (!unitsSnap.isEmpty) {
-                            // 🔹 We found a UNIT document for this email
                             val unitDoc = unitsSnap.documents[0]
-                            val unitId = unitDoc.id   // <-- this is what you use in unitReports.unitId
+                            val unitId = unitDoc.id
 
-                            // Save unitId to "session" (SharedPreferences)
-                            val prefs = requireContext()
-                                .getSharedPreferences("flare_session", Context.MODE_PRIVATE)
                             prefs.edit()
                                 .putString("unitId", unitId)
                                 .apply()
 
-                            // Optionally log
-                            // Log.d("LoginFragment", "Saved unitId=$unitId to flare_session")
-
-                            // Go to Firefighter dashboard
-                            startActivity(Intent(requireContext(), FirefighterActivity::class.java))
+                            startActivity(
+                                Intent(
+                                    requireContext(),
+                                    FirefighterActivity::class.java
+                                )
+                            )
                         } else {
-                            // 3️⃣ Default –> regular user dashboard
-                            startActivity(Intent(requireContext(), UserActivity::class.java))
+                            startActivity(
+                                Intent(
+                                    requireContext(),
+                                    UserActivity::class.java
+                                )
+                            )
                         }
                         requireActivity().finish()
                     }
@@ -255,6 +275,7 @@ class LoginFragment : Fragment(R.layout.fragment_login) {
                 requireActivity().finish()
             }
     }
+
 
 
     private fun setLoginEnabled(enabled: Boolean) {

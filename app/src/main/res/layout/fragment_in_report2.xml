@@ -143,6 +143,9 @@
                     android:textColorHint="@color/hintTextColor"
                     android:textColor="@color/primaryTextColor"
                     android:inputType="date"
+                    android:focusable="false"
+                    android:clickable="false"
+                    android:enabled="false"
                     android:background="@android:color/transparent"
                     android:padding="8dp" />
             </LinearLayout>
@@ -171,6 +174,9 @@
                     android:textColorHint="@color/hintTextColor"
                     android:textColor="@color/primaryTextColor"
                     android:inputType="textPersonName"
+                    android:focusable="false"
+                    android:clickable="false"
+                    android:enabled="false"
                     android:background="@android:color/transparent"
                     android:padding="8dp" />
             </LinearLayout>

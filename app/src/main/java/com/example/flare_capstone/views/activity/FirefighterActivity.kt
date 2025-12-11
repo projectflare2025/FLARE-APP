@@ -23,7 +23,6 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.fragment.NavHostFragment
 import com.example.flare_capstone.R
 import com.example.flare_capstone.databinding.ActivityDashboardFireFighterBinding
-import np.com.susanthapa.curved_bottom_navigation.CbnMenuItem
 import com.example.flare_capstone.views.fragment.bfp.FireFighterResponseActivity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ChildEventListener
@@ -33,6 +32,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.Query
 import com.google.firebase.database.ValueEventListener
+import np.com.susanthapa.curved_bottom_navigation.CbnMenuItem
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -52,21 +52,21 @@ class FirefighterActivity : AppCompatActivity() {
         // Legacy single-channel id (we’ll delete it)
         const val OLD_CHANNEL_ID = "ff_incidents"
 
-        const val CH_MSG  = "ff_admin_msg"   // 👈 new: admin chat messages
+        const val CH_MSG  = "ff_admin_msg"   // admin chat messages
     }
 
     private lateinit var binding: ActivityDashboardFireFighterBinding
     private lateinit var database: FirebaseDatabase
     private lateinit var prefs: SharedPreferences
 
-    // Station account key mapping (e.g., "MabiniFireFighterAccount")
+    // 🔹 Unit ID (from login session) for unitReports.unitId
+    private var myUnitId: String = ""
+
+    // 🔹 For station-based AdminMessages (still using the old tree)
     private var stationAccountKey: String? = null
 
-    // Realtime base: TagumCityCentralFireStation/FireFighter/AllFireFighterAccount/<AccountKey>/AllReport
-    private var reportsBase: String? = null
-
     // Dedupe + lifecycle
-    private val shownKeys = mutableSetOf<String>()               // "$path::$id"
+    private val shownKeys = mutableSetOf<String>()               // e.g. "unit::FireReport::<reportId>"
     private val liveListeners = mutableListOf<Pair<Query, ChildEventListener>>()
     private val liveValueListeners = mutableListOf<Pair<DatabaseReference, ValueEventListener>>()
 
@@ -78,31 +78,30 @@ class FirefighterActivity : AppCompatActivity() {
         binding = ActivityDashboardFireFighterBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupBottomNavigation()  // New bottom navigation setup
+        setupBottomNavigation()
 
         database = FirebaseDatabase.getInstance()
         prefs = getSharedPreferences("ff_notifs", MODE_PRIVATE)
 
-        // Map current user → station account key used by the new DB layout
+        // 🔹 Unit ID used in unitReports.unitId
+        val sessionPrefs = getSharedPreferences("flare_session", MODE_PRIVATE)
+        myUnitId = sessionPrefs.getString("unitId", null)
+            ?: FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+        Log.d(TAG, "myUnitId=$myUnitId")
+
+        // Station mapping only for AdminMessages (and possibly liveLocation elsewhere)
         val email = FirebaseAuth.getInstance().currentUser?.email?.lowercase()
         stationAccountKey = stationAccountForEmail(email)
-        reportsBase = stationAccountKey?.let {
-            "TagumCityCentralFireStation/FireFighter/AllFireFighterAccount/$it/AllReport"
-        }
-        Log.d(TAG, "email=$email accountKey=$stationAccountKey base=$reportsBase")
+        Log.d(TAG, "email=$email stationAccountKey=$stationAccountKey")
 
-        createNotificationChannels()      // Fire/Other custom, EMS shares OTHER, SMS default sound
+        createNotificationChannels()
         maybeRequestPostNotifPermission()
 
-        if (reportsBase != null) {
-            val base = reportsBase!!
-            listenOne("$base/FireReport",                         "New FIRE report")
-            listenOne("$base/OtherEmergencyReport",               "New OTHER emergency")
-            listenOne("$base/EmergencyMedicalServicesReport",     "New EMS report")
-            listenOne("$base/SmsReport",                          "New SMS emergency")
-        } else {
-            Log.w(TAG, "No station mapped; not attaching Firebase listeners.")
-        }
+        // 🔹 Listen for dispatches assigned to THIS UNIT under unitReports
+        listenUnitDispatches("FireReport",                     "New FIRE report")
+        listenUnitDispatches("OtherEmergencyReport",           "New OTHER emergency")
+        listenUnitDispatches("EmergencyMedicalServicesReport", "New EMS report")
+        listenUnitDispatches("SmsReport",                      "New SMS emergency")
 
         // Handle tap from a notification when app is cold-started
         handleIntent(intent)
@@ -114,12 +113,10 @@ class FirefighterActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNavigation() {
-        // Get the nav controller
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment_firefighter) as NavHostFragment
         val navController = navHostFragment.navController
 
-        // Bottom nav items matching your fragments & nav graph destinations
         val menuItems = arrayOf(
             CbnMenuItem(R.drawable.ic_home, R.drawable.avd_home , R.id.homeFireFighterFragment),
             CbnMenuItem(R.drawable.ic_services, R.drawable.avd_services, R.id.fireFighterReportFragment),
@@ -127,10 +124,7 @@ class FirefighterActivity : AppCompatActivity() {
             CbnMenuItem(R.drawable.ic_profile, R.drawable.avd_profile, R.id.profileFireFighterFragment)
         )
 
-        // Setup menu for the bottom navigation
         binding.bottomNavigationFirefighter.setMenuItems(menuItems, 0)
-
-        // Connect bottom nav to navController
         binding.bottomNavigationFirefighter.setupWithNavController(navController)
     }
 
@@ -140,6 +134,9 @@ class FirefighterActivity : AppCompatActivity() {
         handleIntent(intent)
     }
 
+    /* ----------------------------------------------------------------
+     *  ADMIN MESSAGES (station-based, not per-unit)
+     * ---------------------------------------------------------------- */
 
     private fun watchAdminUnreadCount(accountKey: String) {
         val path = "TagumCityCentralFireStation/FireFighter/AllFireFighterAccount/$accountKey/AdminMessages"
@@ -154,9 +151,8 @@ class FirefighterActivity : AppCompatActivity() {
                     if (sender.equals("admin", ignoreCase = true) && !isRead) cnt++
                 }
                 unreadAdminCount = cnt
-//                updateInboxBadge(cnt)
+                // you can wire this to a badge if you want
             }
-
             override fun onCancelled(error: DatabaseError) {}
         }
 
@@ -178,14 +174,13 @@ class FirefighterActivity : AppCompatActivity() {
                         val ts = c.child("timestamp").getValue(Long::class.java) ?: 0L
                         if (ts > baseTs) baseTs = ts
                     }
-                    attachAdminRealtime(ref, baseTs) // now attach realtime
+                    attachAdminRealtime(ref, baseTs)
                 }
                 override fun onCancelled(error: DatabaseError) {
                     attachAdminRealtime(ref, 0L) // fallback
                 }
             })
     }
-
 
     private fun attachAdminRealtime(ref: DatabaseReference, baseTsMs: Long) {
         val l = object : ChildEventListener {
@@ -195,8 +190,6 @@ class FirefighterActivity : AppCompatActivity() {
             }
             @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
             override fun onChildChanged(snap: DataSnapshot, prev: String?) {
-                // If admin edits something from unread → still unread, you could notify.
-                // Usually we only notify on add, but harmless to handle here too:
                 handleAdminMessageSnap(snap, baseTsMs)
             }
             override fun onChildRemoved(snap: DataSnapshot) {}
@@ -207,7 +200,6 @@ class FirefighterActivity : AppCompatActivity() {
         liveListeners += (ref to l)
     }
 
-
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun handleAdminMessageSnap(snap: DataSnapshot, baseTsMs: Long) {
         val id = snap.key ?: return
@@ -215,7 +207,6 @@ class FirefighterActivity : AppCompatActivity() {
         val isRead = snap.child("isRead").getValue(Boolean::class.java) ?: false
         val ts     = snap.child("timestamp").getValue(Long::class.java) ?: 0L
 
-        // Only notify: admin + unread + newer than base + not shown before
         if (!sender.equals("admin", ignoreCase = true)) return
         if (isRead) return
         if (ts <= baseTsMs) return
@@ -227,7 +218,6 @@ class FirefighterActivity : AppCompatActivity() {
         markShown(key)
     }
 
-
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun showAdminMessageNotification(snap: DataSnapshot) {
         if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) return
@@ -236,7 +226,6 @@ class FirefighterActivity : AppCompatActivity() {
         val hasImage    = snap.hasChild("imageBase64")
         val hasAudio    = snap.hasChild("audioBase64")
 
-        // Build a compact preview
         val preview = when {
             !messageText.isNullOrBlank() -> messageText
             hasImage -> "Admin sent a photo"
@@ -244,12 +233,9 @@ class FirefighterActivity : AppCompatActivity() {
             else -> "New message from Admin"
         }
 
-        // Open the chat screen directly
         val intent = Intent(this, FireFighterResponseActivity::class.java).apply {
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra("from_notification_admin", true)
-            // FireFighterResponseActivity already resolves account by email,
-            // so extras are optional. Add if your activity expects something.
         }
         val reqCode = ("adminmsg::${snap.key}").hashCode()
         val pending = PendingIntent.getActivity(
@@ -275,24 +261,6 @@ class FirefighterActivity : AppCompatActivity() {
         }
     }
 
-
-//    private fun updateInboxBadge(count: Int) {
-//        // Suppose your bottom nav ID is R.id.inbox or similar
-//        val menu = binding.bottomNavigationFirefighter.menu
-//        val inboxItem = menu.findItem(R.id.inboxFragmentFireFighter) // adjust your ID
-//        if (inboxItem != null) {
-//            if (count > 0) {
-//                // show badge
-//                val badge = binding.bottomNavigationFirefighter.getOrCreateBadge(R.id.inboxFragmentFireFighter)
-//                badge.isVisible = true
-//                badge.number = count
-//            } else {
-//                binding.bottomNavigationFirefighter.removeBadge(R.id.inboxFragmentFireFighter)
-//            }
-//        }
-//    }
-
-    // Call this when user opens the station's chat
     fun markStationAdminRead(stationId: String) {
         val path = "TagumCityCentralFireStation/FireFighter/AllFireFighterAccount/$stationAccountKey/AdminMessages"
         val ref = database.getReference(path)
@@ -310,106 +278,136 @@ class FirefighterActivity : AppCompatActivity() {
             })
     }
 
+    /* ----------------------------------------------------------------
+     *  UNIT INCIDENT NOTIFICATIONS  (AllReport + unitReports)
+     * ---------------------------------------------------------------- */
 
-    /* -------------------- Email → Account Key -------------------- */
-
-    private fun stationAccountForEmail(email: String?): String? {
-        val e = email ?: return null
-        return when (e) {
-
-            "tcwestfiresubstation@gmail.com" -> "MabiniFireFighterAccount"
-
-            "lafilipinafire@gmail.com" -> "LaFilipinaFireFighterAccount"
-
-            "bfp_tagumcity@yahoo.com" -> "CanocotanFireFighterAccount"
-
-            else -> null
+    /**
+     * We listen under:
+     *   unitReports/{typeNode}
+     * filtered by unitId == myUnitId.
+     *
+     * For each new or changed dispatch that is:
+     *   - status "Ongoing"
+     *   - acceptedAt > baseTsMs (no spam for old ones)
+     * we then fetch the incident from:
+     *   AllReport/{typeNode}/{reportId}
+     * and show a notification.
+     */
+    private fun listenUnitDispatches(typeNode: String, title: String) {
+        if (myUnitId.isBlank()) {
+            Log.w(TAG, "No unitId; skipping unitReports listener for $typeNode")
+            return
         }
-    }
 
-    private fun friendlyStationLabel(): String {
-        return when (stationAccountKey) {
-            "MabiniFireFighterAccount"        -> "Mabini"
-            "LaFilipinaFireFighterAccount"    -> "La Filipina"
-            "CanocotanFireFighterAccount"     -> "Canocotan"
-            else -> "Unknown"
-        }
-    }
+        val ref = database.getReference("unitReports").child(typeNode)
+        val q = ref.orderByChild("unitId").equalTo(myUnitId)
 
-    /* -------------------- Firebase → Notification (once-per-id) -------------------- */
+        Log.d(TAG, "listenUnitDispatches attach type=$typeNode unitId=$myUnitId")
 
-    private fun listenOne(path: String, title: String) {
-        val ref = database.getReference(path)
-        Log.d(TAG, "listenOne attach path=$path")
-
-        // 1) Initial snapshot: find latest ongoing timestamp (don’t notify for these).
-        ref.limitToLast(200).addListenerForSingleValueEvent(object : ValueEventListener {
+        // Initial snapshot: compute baseTs so we don't notify historical dispatches.
+        q.limitToLast(200).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                var baseTsMs = 0L
-                var existingOngoing = 0
-                for (c in snapshot.children) {
-                    if (statusIsOngoing(c)) {
-                        existingOngoing++
-                        val ts = readTimestampMillis(c) ?: 0L
-                        if (ts > baseTsMs) baseTsMs = ts
-                    }
+                var baseTs = 0L
+                snapshot.children.forEach { c ->
+                    val rawTs = c.child("acceptedAt").getValue(Long::class.java) ?: 0L
+                    if (rawTs > baseTs) baseTs = rawTs
                 }
-                Log.d(TAG, "[$path] initial done; ongoing=$existingOngoing; baseTs=$baseTsMs")
-                attachRealtime(ref, path, title, baseTsMs)
+                Log.d(TAG, "[unitReports/$typeNode] initial done; baseTs=$baseTs")
+                attachUnitRealtime(q, typeNode, title, baseTs)
             }
+
             override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "[$path] initial cancelled: ${error.message} (fallback baseTs=0)")
-                attachRealtime(ref, path, title, 0L)
+                Log.w(TAG, "[unitReports/$typeNode] initial cancelled: ${error.message} (fallback baseTs=0)")
+                attachUnitRealtime(q, typeNode, title, 0L)
             }
         })
     }
 
-    private fun attachRealtime(ref: DatabaseReference, path: String, title: String, baseTsMs: Long) {
-        val q = ref.limitToLast(200)
+    private fun attachUnitRealtime(
+        q: Query,
+        typeNode: String,
+        title: String,
+        baseTsMs: Long
+    ) {
         val l = object : ChildEventListener {
             @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
             override fun onChildAdded(snap: DataSnapshot, prev: String?) {
-                val id = snap.key ?: return
-                val key = "$path::$id"
-                val st = snap.child("status").getValue(String::class.java)
-                val ts = readTimestampMillis(snap) ?: 0L
-                Log.d(TAG, "ADD $key status=$st ts=$ts base=$baseTsMs shown=${alreadyShown(key)}")
-
-                if (!statusIsOngoing(snap)) return
-                if (ts <= baseTsMs) { Log.d(TAG, "→ skip ADD (old vs baseTs)"); return }
-                if (alreadyShown(key)) { Log.d(TAG, "→ skip ADD (already shown)"); return }
-
-                showIncidentNotification(title, snap, path)
-                markShown(key)
+                handleUnitDispatchSnap(snap, typeNode, title, baseTsMs)
             }
 
             @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
             override fun onChildChanged(snap: DataSnapshot, prev: String?) {
-                val id = snap.key ?: return
-                val key = "$path::$id"
-                val st  = snap.child("status").getValue(String::class.java)
-                Log.d(TAG, "CHG $key status=$st shown=${alreadyShown(key)}")
-
-                if (!statusIsOngoing(snap)) return
-                if (alreadyShown(key)) { Log.d(TAG, "→ skip CHG (already shown)"); return }
-
-                showIncidentNotification(title, snap, path)
-                markShown(key)
+                handleUnitDispatchSnap(snap, typeNode, title, baseTsMs)
             }
 
             override fun onChildRemoved(snap: DataSnapshot) {}
             override fun onChildMoved(snap: DataSnapshot, prev: String?) {}
             override fun onCancelled(error: DatabaseError) {
-                Log.w(TAG, "[$path] realtime cancelled: ${error.message}")
+                Log.w(TAG, "[unitReports/$typeNode] realtime cancelled: ${error.message}")
             }
         }
 
         q.addChildEventListener(l)
         liveListeners += (q to l)
-        Log.d(TAG, "[$path] realtime attached (limitToLast=200)")
+        Log.d(TAG, "[unitReports/$typeNode] realtime attached (unitId=$myUnitId)")
     }
 
-    /* -------------------- Notification builder -------------------- */
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    private fun handleUnitDispatchSnap(
+        snap: DataSnapshot,
+        typeNode: String,
+        title: String,
+        baseTsMs: Long
+    ) {
+        val dispatchId = snap.key ?: return
+        val status = snap.child("status").getValue(String::class.java)
+        val rawTs = snap.child("acceptedAt").getValue(Long::class.java) ?: 0L
+        val ts = rawTs  // same field for baseTs and current, units don't matter
+
+        Log.d(TAG, "UNIT[$typeNode] dispatch=$dispatchId status=$status ts=$ts baseTs=$baseTsMs")
+
+        if (!statusIsOngoingRaw(status)) return
+        if (ts <= baseTsMs) {
+            Log.d(TAG, "→ skip unit dispatch (old vs baseTs)")
+            return
+        }
+
+        val reportId = snap.child("reportId").getValue(String::class.java) ?: return
+
+        // Deduplicate per type+reportId
+        val key = "unit::$typeNode::$reportId"
+        if (alreadyShown(key)) {
+            Log.d(TAG, "→ skip unit dispatch (already shown) key=$key")
+            return
+        }
+
+        // Fetch the actual incident under AllReport/{typeNode}/{reportId}
+        val reportPath = "AllReport/$typeNode/$reportId"
+        val reportRef = database.getReference(reportPath)
+
+        reportRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+            override fun onDataChange(incidentSnap: DataSnapshot) {
+                if (!incidentSnap.exists()) {
+                    Log.w(TAG, "Missing AllReport node for $reportPath")
+                    return
+                }
+                // path used only for channel mapping and extras
+                val pathForNotif = reportPath
+                showIncidentNotification(title, incidentSnap, pathForNotif)
+                markShown(key)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.w(TAG, "Failed to load AllReport for $reportPath: ${error.message}")
+            }
+        })
+    }
+
+    /* ----------------------------------------------------------------
+     *  INCIDENT NOTIFICATION BUILDER
+     * ---------------------------------------------------------------- */
 
     private fun channelForPath(path: String): String = when {
         path.endsWith("FireReport")                          -> CH_FIRE
@@ -443,15 +441,13 @@ class FirefighterActivity : AppCompatActivity() {
         val channelId = channelForPath(path)
         val srcStr = sourceForPath(path)
 
-        // Build an intent that carries WHICH incident to open
         val intent = Intent(this, FirefighterActivity::class.java).apply {
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
             putExtra("from_notification", true)
             putExtra("select_source", srcStr) // "FIRE" | "OTHER" | "EMS" | "SMS"
-            putExtra("select_id", id)         // Firebase child key
+            putExtra("select_id", id)         // AllReport child key (reportId)
         }
 
-        // Unique requestCode per incident so extras are not reused
         val reqCode = ("$path::$id").hashCode()
 
         val pending = PendingIntent.getActivity(
@@ -468,13 +464,24 @@ class FirefighterActivity : AppCompatActivity() {
             .setOnlyAlertOnce(true)
             .setContentIntent(pending)
 
-        // Pre-O fallback for sounds:
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             when (channelId) {
-                CH_FIRE  -> { builder.setSound(rawSoundUri(R.raw.fire_report));  builder.setVibrate(longArrayOf(0, 600, 200, 600, 200, 600)) }
-                CH_OTHER -> { builder.setSound(rawSoundUri(R.raw.other_emergency_report)); builder.setVibrate(longArrayOf(0, 400, 150, 400)) }
-                CH_EMS   -> { builder.setSound(rawSoundUri(R.raw.emergecy_medical_services_report)); builder.setVibrate(longArrayOf(0, 400, 150, 400)) }
-                CH_SMS   -> { builder.setSound(rawSoundUri(R.raw.sms_report)); builder.setVibrate(longArrayOf(0, 400, 150, 400)) }
+                CH_FIRE  -> {
+                    builder.setSound(rawSoundUri(R.raw.fire_report))
+                    builder.setVibrate(longArrayOf(0, 600, 200, 600, 200, 600))
+                }
+                CH_OTHER -> {
+                    builder.setSound(rawSoundUri(R.raw.other_emergency_report))
+                    builder.setVibrate(longArrayOf(0, 400, 150, 400))
+                }
+                CH_EMS   -> {
+                    builder.setSound(rawSoundUri(R.raw.emergecy_medical_services_report))
+                    builder.setVibrate(longArrayOf(0, 400, 150, 400))
+                }
+                CH_SMS   -> {
+                    builder.setSound(rawSoundUri(R.raw.sms_report))
+                    builder.setVibrate(longArrayOf(0, 400, 150, 400))
+                }
             }
         }
 
@@ -487,55 +494,52 @@ class FirefighterActivity : AppCompatActivity() {
         }
     }
 
-    /* -------------------- Channels (Fire/Other custom; EMS shares OTHER; SMS default) -------------------- */
+    /* ----------------------------------------------------------------
+     *  CHANNELS
+     * ---------------------------------------------------------------- */
 
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val nm = getSystemService(NotificationManager::class.java)
 
-        // Delete legacy single channel if it exists
         runCatching { nm.deleteNotificationChannel(OLD_CHANNEL_ID) }
 
-        // Always delete & recreate to apply new sounds
         recreateChannel(
             id = CH_FIRE,
             name = "Firefighter • FIRE",
-            soundUri = rawSoundUri(R.raw.fire_report),     // custom
+            soundUri = rawSoundUri(R.raw.fire_report),
             useDefault = false
         )
         recreateChannel(
             id = CH_OTHER,
             name = "Firefighter • OTHER",
-            soundUri = rawSoundUri(R.raw.other_emergency_report),    // custom
+            soundUri = rawSoundUri(R.raw.other_emergency_report),
             useDefault = false
         )
         recreateChannel(
             id = CH_EMS,
             name = "Firefighter • EMS",
-            soundUri = rawSoundUri(R.raw.emergecy_medical_services_report),    // reuse OTHER unless you add ems_alert
+            soundUri = rawSoundUri(R.raw.emergecy_medical_services_report),
             useDefault = false
         )
         recreateChannel(
             id = CH_SMS,
             name = "Firefighter • SMS",
-            soundUri = rawSoundUri(R.raw.sms_report),    // reuse OTHER unless you add ems_alert
+            soundUri = rawSoundUri(R.raw.sms_report),
             useDefault = true
         )
-
         recreateChannel(
             id = CH_MSG,
             name = "Firefighter • Admin Messages",
             soundUri = rawSoundUri(R.raw.message_notif),
             useDefault = true
         )
-
     }
 
     private fun recreateChannel(id: String, name: String, soundUri: Uri?, useDefault: Boolean) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val nm = getSystemService(NotificationManager::class.java)
 
-        // Remove existing channel to ensure sound updates take effect
         runCatching { nm.deleteNotificationChannel(id) }
 
         val ch = NotificationChannel(id, name, NotificationManager.IMPORTANCE_HIGH)
@@ -546,7 +550,6 @@ class FirefighterActivity : AppCompatActivity() {
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
 
-        // On O+, sound is defined by the channel.
         if (useDefault) {
             val defaultUri = soundUri ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             ch.setSound(defaultUri, aa)
@@ -561,12 +564,37 @@ class FirefighterActivity : AppCompatActivity() {
     private fun rawSoundUri(@RawRes res: Int): Uri =
         Uri.parse("android.resource://$packageName/$res")
 
-    /* -------------------- Status + timestamp helpers -------------------- */
+    /* ----------------------------------------------------------------
+     *  HELPERS
+     * ---------------------------------------------------------------- */
+
+    private fun stationAccountForEmail(email: String?): String? {
+        val e = email ?: return null
+        return when (e) {
+            "tcwestfiresubstation@gmail.com" -> "MabiniFireFighterAccount"
+            "lafilipinafire@gmail.com"       -> "LaFilipinaFireFighterAccount"
+            "bfp_tagumcity@yahoo.com"        -> "CanocotanFireFighterAccount"
+            else -> null
+        }
+    }
+
+    private fun friendlyStationLabel(): String {
+        return when (stationAccountKey) {
+            "MabiniFireFighterAccount"        -> "Mabini"
+            "LaFilipinaFireFighterAccount"    -> "La Filipina"
+            "CanocotanFireFighterAccount"     -> "Canocotan"
+            else -> "Unknown"
+        }
+    }
+
+    private fun statusIsOngoingRaw(raw: String?): Boolean {
+        val norm = raw?.trim()?.replace("-", "")?.lowercase() ?: return false
+        return norm == "ongoing"
+    }
 
     private fun statusIsOngoing(snap: DataSnapshot): Boolean {
-        val raw = snap.child("status").getValue(String::class.java)?.trim() ?: return false
-        val norm = raw.replace("-", "").lowercase()
-        return norm == "ongoing"
+        val raw = snap.child("status").getValue(String::class.java)
+        return statusIsOngoingRaw(raw)
     }
 
     private fun getLongRelaxed(node: DataSnapshot, key: String): Long? {
@@ -600,8 +628,6 @@ class FirefighterActivity : AppCompatActivity() {
         return if (ms > 0) ms else null
     }
 
-    /* -------------------- Dedupe -------------------- */
-
     private fun alreadyShown(key: String): Boolean =
         shownKeys.contains(key) || prefs.getBoolean(key, false)
 
@@ -611,27 +637,21 @@ class FirefighterActivity : AppCompatActivity() {
         Log.d(TAG, "markShown $key")
     }
 
-    // Optional helper to reset dedupe
-    @Suppress("unused")
-    private fun debugClearDedupe() {
-        Log.w(TAG, "debugClearDedupe called: clearing all stored keys")
-        prefs.edit().clear().apply()
-        shownKeys.clear()
-    }
-
-    /* -------------------- Permissions -------------------- */
-
     private fun maybeRequestPostNotifPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val granted = ContextCompat.checkSelfPermission(
                 this, Manifest.permission.POST_NOTIFICATIONS
             ) == PackageManager.PERMISSION_GRANTED
             Log.d(TAG, "notif permission granted=$granted")
-            if (!granted) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIF_REQ_CODE)
+            if (!granted) {
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIF_REQ_CODE)
+            }
         }
     }
 
-    /* -------------------- Deliver selection to Home fragment -------------------- */
+    /* ----------------------------------------------------------------
+     *  DELIVER SELECTION TO HOME MAP
+     * ---------------------------------------------------------------- */
 
     private fun handleIntent(intent: Intent?) {
         if (intent?.getBooleanExtra("from_notification", false) == true) {
@@ -645,17 +665,18 @@ class FirefighterActivity : AppCompatActivity() {
     }
 
     private fun deliverSelectionToHome(srcStr: String, id: String) {
-        // Send to the fragment (it listens for "select_incident")
         supportFragmentManager.setFragmentResult(
             "select_incident",
             Bundle().apply {
                 putString("source", srcStr) // "FIRE" | "OTHER" | "EMS" | "SMS"
-                putString("id", id)
+                putString("id", id)         // AllReport child key
             }
         )
     }
 
-    /* -------------------- Cleanup -------------------- */
+    /* ----------------------------------------------------------------
+     *  CLEANUP
+     * ---------------------------------------------------------------- */
 
     override fun onDestroy() {
         super.onDestroy()
@@ -664,5 +685,4 @@ class FirefighterActivity : AppCompatActivity() {
         liveListeners.clear()
         liveValueListeners.clear()
     }
-
 }

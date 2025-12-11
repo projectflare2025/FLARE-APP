@@ -22,12 +22,10 @@ class InvestigatorReportAdapter(
         fun bind(report: InvestigatorReport) {
 
             // ---- STATUS: DB → UI ----
-            // ongoing  -> Pending
-            // completed/complete -> Complete
             val statusRaw = report.status?.trim()?.lowercase(Locale.ROOT) ?: "ongoing"
             val (statusLabel, chipColorRes) = when (statusRaw) {
-                "ongoing", "pending" -> "Pending" to R.color.warningYellow
-                "completed", "complete", "resolved" -> "Complete" to R.color.successGreen
+                "ongoing", "pending" -> "Ongoing" to R.color.warningYellow
+                "completed", "complete", "resolved" -> "Completed" to R.color.successGreen
                 "cancelled", "canceled" -> "Cancelled" to R.color.errorRed
                 else -> statusRaw.replaceFirstChar { it.titlecase(Locale.ROOT) } to R.color.gray
             }
@@ -36,30 +34,37 @@ class InvestigatorReportAdapter(
             binding.reportStatusText.setTextColor(
                 ContextCompat.getColor(binding.root.context, android.R.color.white)
             )
-            // your chip background drawable
             binding.reportStatusText.background =
                 ContextCompat.getDrawable(binding.root.context, R.drawable.status_chip_background)
 
-            // ---- Reporter name / header line ----
-            // You can change this when you have real reporter info
+            // ---- Station / header line ----
             binding.reporterNameText.text =
-                "Station: ${report.stationId ?: "Unknown station"}"
+                "Reporter: ${report.reporterName ?: "Unknown reporter"}"
 
             // ---- Type / category line ----
-            binding.reportTypeText.text = report.reportType ?: "Fire Report"
+            binding.reportTypeText.text = when (report.reportType) {
+                "FireReport" -> "Fire Report"
+                "OtherEmergencyReport" -> "Other Emergency"
+                "EmergencyMedicalServicesReport" -> "EMS Report"
+                "SmsReport" -> "SMS Report"
+                else -> report.reportType ?: "Report"
+            }
 
-            // ---- Date & time from acceptedAt ----
+            // ---- Date & time ----
             val acceptedAt = report.acceptedAt
             if (acceptedAt != null) {
                 val sdf = SimpleDateFormat("MMM dd, yyyy • h:mm a", Locale.getDefault())
                 binding.reportDateTimeText.text = sdf.format(Date(acceptedAt))
+            } else if (!report.date.isNullOrBlank() || !report.time.isNullOrBlank()) {
+                binding.reportDateTimeText.text =
+                    listOfNotNull(report.date, report.time).joinToString(" • ")
             } else {
                 binding.reportDateTimeText.text = "Unknown time"
             }
 
-            // ---- Location line (placeholder) ----
-            binding.reportLocationText.text =
-                "Station ID: ${report.stationId ?: "Unknown location"}"
+            // ---- Location line ----
+            val loc = report.location ?: report.stationId ?: "Unknown location"
+            binding.reportLocationText.text = loc
 
             // ---- Click ----
             binding.root.setOnClickListener {
